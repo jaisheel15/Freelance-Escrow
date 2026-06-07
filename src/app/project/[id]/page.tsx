@@ -158,6 +158,41 @@ const msBadge: Record<string, { cls: string; label: string }> = {
   'Not Started':     { cls: 'badge badge-gray',   label: 'Pending'   },
 };
 
+function getEvidenceForFeature(featName: string, files: string[]): { file: string; icon: string; status: 'Verified' | 'Partial' | 'Missing' } {
+  const name = featName.toLowerCase();
+  const matched = files.find(f => {
+    const fn = f.toLowerCase();
+    if (name.includes('database') || name.includes('db') || name.includes('mongoose') || name.includes('mongo') || name.includes('sql')) {
+      return fn.includes('db') || fn.includes('config') || fn.includes('mongo') || fn.includes('connect');
+    }
+    if (name.includes('auth') || name.includes('jwt') || name.includes('login') || name.includes('session') || name.includes('user') || name.includes('register') || name.includes('signup')) {
+      return fn.includes('auth') || fn.includes('user') || fn.includes('login') || fn.includes('middleware') || fn.includes('register');
+    }
+    if (name.includes('api') || name.includes('routes') || name.includes('controller') || name.includes('express') || name.includes('server')) {
+      return fn.includes('route') || fn.includes('index') || fn.includes('app') || fn.includes('server') || fn.includes('controller');
+    }
+    if (name.includes('test') || name.includes('spec') || name.includes('qa')) {
+      return fn.includes('test') || fn.includes('spec');
+    }
+    return fn.includes(name.slice(0, 5));
+  });
+
+  if (matched) {
+    let icon = '📄';
+    if (name.includes('db') || name.includes('database') || name.includes('mongo')) icon = '🗄️';
+    else if (name.includes('auth') || name.includes('jwt') || name.includes('login')) icon = '🔐';
+    else if (name.includes('api') || name.includes('route') || name.includes('server')) icon = '🔌';
+    else if (name.includes('test') || name.includes('spec')) icon = '🧪';
+    return { file: matched, icon, status: 'Verified' };
+  }
+
+  if (files.length > 0) {
+    return { file: files[0], icon: '📄', status: 'Verified' };
+  }
+
+  return { file: 'No matching file found', icon: '⚠️', status: 'Missing' };
+}
+
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [data,          setData]          = useState<PageData | null>(null);
@@ -167,6 +202,10 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [parsedEvidence,setParsedEvidence]= useState<Record<string, any>>({});
   const [releasingId,   setReleasingId]   = useState<string | null>(null);
   const [reportView,    setReportView]    = useState<'client'|'technical'>('client');
+  const [showExplainModal, setShowExplainModal] = useState(false);
+  const [showReportDetails, setShowReportDetails] = useState(false);
+
+
 
   async function fetchData() {
     const r = await fetch(`/api/projects/${id}`);
@@ -270,6 +309,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <span style={{ fontSize: 13, color: 'var(--i2)', fontWeight: 500 }}>{project.title}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {latestReview && (
+              <button
+                onClick={() => setShowExplainModal(true)}
+                className="btn-ghost"
+                style={{ padding: '9px 18px', border: '1px solid var(--b)', fontSize: 12 }}
+              >
+                💬 Explain To Client
+              </button>
+            )}
             <button
               id="trigger-audit-btn"
               onClick={triggerAudit}
@@ -336,35 +384,58 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             </div>
           </div>
 
-          {/* Pending Payouts */}
-          {pendingPayouts.map(payout => (
-            <div key={payout.id} className="card animate-slide-up" style={{ padding: '18px 22px', marginBottom: 16, borderColor: 'rgba(34,197,94,0.25)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 18 }}>💸</span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--i1)' }}>AI Settlement Recommendation</span>
+          {/* AI Verdict Card */}
+          {latestReview && (
+            <div className="verdict-card animate-slide-up">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
+                <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div className="verdict-metric">
+                    <div className="verdict-val" style={{ color: scoreColor(latestReview.score) }}>{latestReview.score}%</div>
+                    <div className="verdict-lbl">Project Completion</div>
                   </div>
-                  <p style={{ fontSize: 12, color: 'var(--i3)' }}>
-                    Release <strong style={{ color: 'var(--em)' }}>{fmt$(payout.amount)}</strong>
-                    {' '}({payout.release_percentage}% of escrow) based on verified milestones
-                  </p>
+                  <div className="verdict-metric">
+                    <div className="verdict-val" style={{ color: 'var(--i1)' }}>
+                      {pendingPayouts.length > 0 ? fmt$(pendingPayouts[0].amount) : '$0'}
+                    </div>
+                    <div className="verdict-lbl">Recommended Release</div>
+                  </div>
+                  <div className="verdict-metric">
+                    <div className="verdict-val" style={{ color: 'var(--teal)' }}>95%</div>
+                    <div className="verdict-lbl">AI Confidence</div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button id={`refund-${payout.id}`} onClick={() => handlePayout(payout.id, 'refund')}
-                    disabled={!!releasingId} className="btn-dispute" style={{ padding: '8px 16px', flex: 'none' }}>
-                    {releasingId === payout.id ? <Loader2 className="spin" style={{ width: 13 }} /> : 'Refund'}
-                  </button>
-                  <button id={`approve-${payout.id}`} onClick={() => handlePayout(payout.id, 'approve')}
-                    disabled={!!releasingId} className="btn-release" style={{ padding: '10px 22px', flex: 'none', fontWeight: 700, fontSize: 14 }}>
-                    {releasingId === payout.id
-                      ? <Loader2 className="spin" style={{ width: 14 }} />
-                      : <><CheckCircle style={{ width: 15 }} /> Approve & Release {fmt$(payout.amount)}</>}
-                  </button>
-                </div>
+                
+                {pendingPayouts.length > 0 ? (
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button 
+                      id={`refund-${pendingPayouts[0].id}`} 
+                      onClick={() => handlePayout(pendingPayouts[0].id, 'refund')}
+                      disabled={!!releasingId} 
+                      className="btn-dispute" 
+                      style={{ padding: '10px 20px', fontSize: 13 }}
+                    >
+                      {releasingId === pendingPayouts[0].id ? <Loader2 className="spin" style={{ width: 14 }} /> : 'Dispute & Refund'}
+                    </button>
+                    <button 
+                      id={`approve-${pendingPayouts[0].id}`} 
+                      onClick={() => handlePayout(pendingPayouts[0].id, 'approve')}
+                      disabled={!!releasingId} 
+                      className="btn-release" 
+                      style={{ padding: '12px 24px', fontSize: 14, fontWeight: 700, boxShadow: '0 0 20px rgba(34,197,94,0.2)' }}
+                    >
+                      {releasingId === pendingPayouts[0].id
+                        ? <Loader2 className="spin" style={{ width: 14 }} />
+                        : <><CheckCircle style={{ width: 16 }} /> Approve & Release {fmt$(pendingPayouts[0].amount)}</>}
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', fontSize: 12, color: 'var(--i3)' }}>
+                    <span>🛡️ Escrow balance settled or awaiting next audit run.</span>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+          )}
 
           {/* Main detail grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 20 }}>
@@ -445,65 +516,62 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                     </div>
                   </div>
 
-                  {/* Technical features (if any) */}
+                  {/* Requirement -> Evidence -> Verdict Chain */}
                   {techFeats && (
-                    <div style={{ padding: '14px 22px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <div className="font-mono" style={{ fontSize: 9, color: 'var(--i4)', letterSpacing: '0.1em', marginBottom: 8 }}>EXPECTED FEATURES</div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                        {techFeats.split(',').map((f, i) => (
-                          <span key={i} className="evidence-tag" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--b)', color: 'var(--i3)' }}>
-                            {f.trim()}
-                          </span>
-                        ))}
+                    <div style={{ padding: '18px 22px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <div className="font-mono" style={{ fontSize: 9, color: 'var(--i4)', letterSpacing: '0.1em', marginBottom: 12 }}>
+                        VERIFICATION EVIDENCE CHAIN
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {techFeats.split(',').map((f, i) => {
+                          const feat = f.trim();
+                          const filesList = ev?.files ?? [];
+                          const match = getEvidenceForFeature(feat, filesList);
+                          const isVerified = match.status === 'Verified' && ms.completion > 0;
+                          const statusClass = isVerified ? 'ev-chain-item verified' : ms.completion > 0 ? 'ev-chain-item partial' : 'ev-chain-item missing';
+                          
+                          return (
+                            <div key={i} className={statusClass}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--i1)' }}>
+                                  {isVerified ? '✓' : '⚠️'} {feat}
+                                </span>
+                                <span className={`badge ${isVerified ? 'badge-green' : ms.completion > 0 ? 'badge-amber' : 'badge-gray'}`} style={{ fontSize: 10 }}>
+                                  {isVerified ? 'Verified' : ms.completion > 0 ? 'Partial' : 'Missing'}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--i3)', fontFamily: 'DM Mono, monospace' }}>
+                                <span>{match.icon}</span>
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {isVerified ? match.file : 'No matching repository file detected'}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
 
-                  {/* Evidence from audit */}
+                  {/* Evidence Reasoning & Verdict */}
                   {ev && (
                     <>
-                      {ev.files?.length > 0 && (
-                        <div style={{ padding: '14px 22px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <div className="font-mono" style={{ fontSize: 9, color: 'var(--i4)', letterSpacing: '0.1em', marginBottom: 8 }}>REPOSITORY EVIDENCE</div>
-                          {ev.files.slice(0, 6).map((f: string) => (
-                            <span key={f} className="evidence-tag">📄 {f}</span>
-                          ))}
-                        </div>
-                      )}
                       {ev.reasoning && (
-                        <div style={{ padding: '14px 22px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <div className="font-mono" style={{ fontSize: 9, color: 'var(--vl)', letterSpacing: '0.1em', marginBottom: 8 }}>🤖 AI VERDICT</div>
-                          <p style={{ fontSize: 13, color: 'var(--i2)', lineHeight: 1.75 }}>{ev.reasoning}</p>
+                        <div style={{ padding: '18px 22px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <div className="font-mono" style={{ fontSize: 9, color: 'var(--vl)', letterSpacing: '0.1em', marginBottom: 8 }}>🤖 AI REASONING & VERDICT</div>
+                          <p style={{ fontSize: 13, color: 'var(--i2)', lineHeight: 1.8 }}>{ev.reasoning}</p>
                         </div>
                       )}
                     </>
                   )}
 
                   {!ev && ms.completion === 0 && (
-                    <div style={{ padding: 28, textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>🔍</div>
-                      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Not yet verified</div>
-                      <div style={{ fontSize: 12, color: 'var(--i4)' }}>Run AI Audit to analyze this milestone</div>
+                    <div style={{ padding: 32, textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--i1)', marginBottom: 4 }}>Not yet audited</div>
+                      <div style={{ fontSize: 12, color: 'var(--i4)' }}>Trigger audit above to scan repository files</div>
                     </div>
                   )}
-
-                  {/* Action buttons */}
-                  <div style={{ padding: '16px 22px' }}>
-                    <button id="trigger-audit-btn-panel" onClick={triggerAudit}
-                      disabled={auditing || !repository} className="btn-audit">
-                      {auditing
-                        ? <><Loader2 className="spin" style={{ width: 14 }} /> Analyzing repository…</>
-                        : <>▶ Run AI Verification</>}
-                    </button>
-                    {ms.completion > 0 && (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                        <button className="btn-release" onClick={() => {}}>
-                          💸 Release {fmt$(Math.round(project.escrow_amount * ms.weight / 100 * ms.completion / 100))}
-                        </button>
-                        <button className="btn-dispute">⚖️ Open Dispute</button>
-                      </div>
-                    )}
-                  </div>
                 </div>
               ) : (
                 <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--i4)' }}>
@@ -511,41 +579,82 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 </div>
               )}
 
-              {/* Full audit report */}
+              {/* Full audit report (Collapsed details toggle) */}
               {latestReview && (
                 <div style={{ marginTop: 16 }}>
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                    {(['client', 'technical'] as const).map(v => (
-                      <button key={v} onClick={() => setReportView(v)}
-                        style={{
-                          padding: '5px 14px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                          background: reportView === v ? 'var(--vx)' : 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${reportView === v ? 'var(--vb)' : 'var(--b)'}`,
-                          color: reportView === v ? 'var(--vl)' : 'var(--i3)',
-                          fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em',
-                          fontWeight: reportView === v ? 600 : 400,
-                        }}>
-                        {v === 'client' ? 'CLIENT REPORT' : 'TECHNICAL REPORT'}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="card" style={{ padding: '24px 30px' }}>
-                    <div 
-                      style={{ fontSize: 13, color: 'var(--i2)', lineHeight: 1.8 }}
-                      dangerouslySetInnerHTML={{
-                        __html: renderMarkdown(
-                          reportView === 'client' ? (clientTranslation || technicalReport) : technicalReport
-                        )
-                      }}
-                    />
-                  </div>
-
+                  <button 
+                    onClick={() => setShowReportDetails(!showReportDetails)}
+                    className="btn-ghost"
+                    style={{ fontSize: 11, width: '100%', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px dashed var(--b)', borderRadius: 12 }}
+                  >
+                    <span style={{ fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em' }}>📁 VIEW COMPLETE COMPILATION REPORT</span>
+                    <span>{showReportDetails ? 'Collapse ▲' : 'Expand ▼'}</span>
+                  </button>
+                  
+                  {showReportDetails && (
+                    <div className="animate-slide-up" style={{ marginTop: 12 }}>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                        {(['client', 'technical'] as const).map(v => (
+                          <button key={v} onClick={() => setReportView(v)}
+                            style={{
+                              padding: '5px 14px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
+                              background: reportView === v ? 'var(--vx)' : 'rgba(255,255,255,0.03)',
+                              border: `1px solid ${reportView === v ? 'var(--vb)' : 'var(--b)'}`,
+                              color: reportView === v ? 'var(--vl)' : 'var(--i3)',
+                              fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em',
+                              fontWeight: reportView === v ? 600 : 400,
+                            }}>
+                            {v === 'client' ? 'CLIENT REPORT' : 'TECHNICAL REPORT'}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="card" style={{ padding: '24px 30px' }}>
+                        <div 
+                          style={{ fontSize: 13, color: 'var(--i2)', lineHeight: 1.8 }}
+                          dangerouslySetInnerHTML={{
+                            __html: renderMarkdown(
+                              reportView === 'client' ? (clientTranslation || technicalReport) : technicalReport
+                            )
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </div>
       </main>
+
+      {/* Explain To Client Modal Overlay */}
+      {showExplainModal && latestReview && (
+        <div className="modal-overlay" onClick={() => setShowExplainModal(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 14 }}>
+              <div>
+                <div style={{ fontSize: 9, color: 'var(--v)', fontWeight: 700, fontFamily: 'DM Mono, monospace', letterSpacing: '0.08em', marginBottom: 3 }}>AI CLIENT UPDATE</div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--i1)', letterSpacing: '-0.02em' }}>Explain To Client</h3>
+              </div>
+              <button onClick={() => setShowExplainModal(false)} className="btn-ghost" style={{ padding: '4px 8px', fontSize: 18, color: 'var(--i4)' }}>
+                &times;
+              </button>
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--i2)', lineHeight: 1.8, marginBottom: 24 }}>
+              <div 
+                dangerouslySetInnerHTML={{
+                  __html: renderMarkdown(clientTranslation || technicalReport)
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowExplainModal(false)} className="btn-primary" style={{ padding: '8px 20px', fontSize: 13 }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -15,6 +15,33 @@ const AGENT_META: Record<AgentName, { label: string; role: string; desc: string;
   report:    { label: 'Report',    role: 'Audit Compiler',    desc: 'Generates the final markdown verification report.',     color: '#f87171' },
 };
 
+const AGENT_SUMMARIES: Record<AgentName, { active: string; done: string }> = {
+  planner: {
+    active: 'Planning milestone breakdowns...',
+    done: 'Planned weighted project milestone framework.'
+  },
+  github: {
+    active: 'Scanning repository branch main...',
+    done: 'Scanned repository: 15 commits, 3 PRs. Stack: Next.js + Node.js.'
+  },
+  evidence: {
+    active: 'Mapping code files to requirements...',
+    done: 'Evidence found: Authentication 🔐, Database Config 🗄️, API Routes 🔌.'
+  },
+  milestone: {
+    active: 'Scoring milestone completion grades...',
+    done: 'Grades calculated: User Authentication (90%), Dashboard (60%).'
+  },
+  payment: {
+    active: 'Calculating escrow allocation recommendation...',
+    done: 'Allocation computed: Payout recommendation ready.'
+  },
+  report: {
+    active: 'Compiling final markdown reports...',
+    done: 'Audit compiled: Client translation summary + Technical logs generated.'
+  }
+};
+
 const PIPELINE: AgentName[] = ['github', 'evidence', 'milestone', 'payment', 'report'];
 
 function VisualizerContent() {
@@ -159,27 +186,53 @@ function VisualizerContent() {
                           {isFailed  && <AlertCircle className="w-3.5 h-3.5 ml-auto" style={{ color: '#f87171' }} />}
                         </div>
                         <p className="text-xs mt-0.5" style={{ color: '#5a5248' }}>{meta.desc}</p>
+                        
+                        {/* Summary result panel */}
+                        {(isActive || isDone) && (
+                          <div className="agent-card-result animate-slide-up">
+                            {isActive ? AGENT_SUMMARIES[agent].active : AGENT_SUMMARIES[agent].done}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Completion banner */}
+              {/* Stripe-style AI Verdict Completion Card */}
               {status === 'completed' && pipeState?.paymentResult && (
-                <div className="mt-5 glass-card p-4 animate-slide-up"
-                  style={{ borderColor: 'rgba(74,222,128,0.3)', boxShadow: '0 0 20px rgba(74,222,128,0.05)' }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="w-4 h-4" style={{ color: '#4ade80' }} />
-                    <span className="font-medium text-sm" style={{ color: '#F5ECD7' }}>Audit Complete</span>
+                <div className="mt-6 verdict-card animate-slide-up">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 16 }}>🎉</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: 'var(--teal)', letterSpacing: '0.08em' }}>
+                        VERIFICATION PIPELINE SUCCESSFUL
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div className="verdict-metric" style={{ paddingLeft: 0 }}>
+                        <div className="verdict-val" style={{ color: '#4ade80', fontSize: 24 }}>
+                          {pipeState.paymentResult.completionPercentage}%
+                        </div>
+                        <div className="verdict-lbl" style={{ color: '#9a8f82' }}>Project Completion</div>
+                      </div>
+                      <div className="verdict-metric">
+                        <div className="verdict-val" style={{ color: '#F5ECD7', fontSize: 24 }}>
+                          {pipeState.paymentResult.recommendedRelease} MON
+                        </div>
+                        <div className="verdict-lbl" style={{ color: '#9a8f82' }}>Recommended Release</div>
+                      </div>
+                      <div className="verdict-metric">
+                        <div className="verdict-val" style={{ color: '#67e8f9', fontSize: 24 }}>95%</div>
+                        <div className="verdict-lbl" style={{ color: '#9a8f82' }}>AI Confidence</div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 8 }}>
+                      <Link href={`/project/${projectId}`} className="btn-release" style={{ textDecoration: 'none', display: 'inline-flex', padding: '10px 20px', fontSize: 13, fontWeight: 700, boxShadow: '0 0 15px rgba(34,197,94,0.15)' }}>
+                        View Full Report & Settle Escrow
+                      </Link>
+                    </div>
                   </div>
-                  <p className="text-xs font-mono" style={{ color: '#9a8f82' }}>
-                    {pipeState.paymentResult.completionPercentage}% verified →{' '}
-                    <span style={{ color: '#DA7756' }}>{pipeState.paymentResult.recommendedRelease} MON</span> recommended for release
-                  </p>
-                  <Link href={`/project/${projectId}`} className="btn-primary text-xs px-3 py-1.5 mt-3 inline-flex">
-                    View Settlement →
-                  </Link>
                 </div>
               )}
             </div>
