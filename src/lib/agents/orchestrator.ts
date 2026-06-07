@@ -2,7 +2,7 @@
 // Orchestrator — sequential multi-agent pipeline
 // ─────────────────────────────────────────────
 import { db }                 from '@/lib/db';
-import { runGithubAgent }     from './github';
+import { runGithubAgent, fetchFileContent } from './github';
 import { runEvidenceAgent }   from './evidence';
 import { runMilestoneAgent }  from './milestone';
 import { runPaymentAgent }    from './payment';
@@ -59,7 +59,7 @@ export async function startPipeline(
 
       // ── Stage 2: Evidence ────────────────────────────────────────────────
       state.currentAgent = 'evidence';
-      log('evidence', 'Mapping repository artifacts to project milestones…');
+      log('evidence', 'Mapping repository artifacts to project milestones using semantic meaning matching…');
       await sleep(1400);
       const evResult = await runEvidenceAgent(milestones, ghResult.files, ghResult.commits);
       state.evidenceResult = evResult;
@@ -68,15 +68,43 @@ export async function startPipeline(
 
       // ── Stage 3: Milestone ───────────────────────────────────────────────
       state.currentAgent = 'milestone';
-      log('milestone', 'Scoring completion percentage for each milestone…');
+      log('milestone', 'Downloading source code contents of matched files from repository for verification…');
+      
+      const fileContentsMap: Record<string, string> = {};
+      const uniqueFilesToFetch = new Set<string>();
+      
+      Object.values(evResult.evidence).forEach(ev => {
+        if (ev.files) {
+          ev.files.slice(0, 2).forEach(f => uniqueFilesToFetch.add(f));
+        }
+      });
+      
+      for (const f of uniqueFilesToFetch) {
+        log('milestone', `Retrieving & parsing code content: ${f}...`);
+        try {
+          const content = await fetchFileContent(githubUrl, f);
+          fileContentsMap[f] = content;
+        } catch {
+          fileContentsMap[f] = '';
+        }
+      }
+      
+      log('milestone', 'Running deep code verification and scoring implementation quality…');
       await sleep(1200);
-      const msResult = await runMilestoneAgent(milestones, evResult.evidence);
+      const msResult = await runMilestoneAgent(milestones, evResult.evidence, fileContentsMap);
       state.milestoneResult = msResult;
 
-      // Persist scores to DB
+      // Persist scores to DB with normalized fuzzy matches
       for (const score of msResult.milestoneScores) {
-        const m = milestones.find(x => x.title === score.title);
-        if (m) await db.updateMilestone(m.id, { completion: score.completion, status: score.status as any });
+        const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const scoreNorm = norm(score.title);
+        const m = milestones.find(x => {
+          const xNorm = norm(x.title);
+          return xNorm === scoreNorm || xNorm.includes(scoreNorm) || scoreNorm.includes(xNorm);
+        });
+        if (m) {
+          await db.updateMilestone(m.id, { completion: score.completion, status: score.status as any });
+        }
       }
       log('milestone', msResult.reasoning, 'success', msResult.milestoneScores.map(s => ({ title: s.title, completion: s.completion, status: s.status })));
       await sleep(800);
@@ -92,7 +120,7 @@ export async function startPipeline(
 
       // ── Stage 5: Report ──────────────────────────────────────────────────
       state.currentAgent = 'report';
-      log('report', 'Compiling audit report…');
+      log('report', 'Compiling audit report and client translation…');
       await sleep(1000);
       const rpResult = await runReportAgent(
         project.title,
@@ -111,7 +139,7 @@ export async function startPipeline(
       await db.createReview(projectId, {
         score:      pyResult.completionPercentage,
         confidence: pyResult.confidence,
-        summary:    rpResult.markdownReport,
+        summary:    rpResult.markdownReport + '\n---CLIENT_TRANSLATION---\n' + (rpResult.clientTranslation ?? ''),
         evidence:   JSON.stringify(evResult.evidence),
       });
 
@@ -127,13 +155,12 @@ export async function startPipeline(
 
       state.status       = 'completed';
       state.currentAgent = undefined;
-      state.completedAt  = new Date().toISOString();
-      log('report', '✦ Pipeline completed. Payout recommendation ready for client approval.', 'success');
+      log('report', 'Audit pipeline completed successfully. Escrow funds calculated and staged.', 'success');
 
-    } catch (err: any) {
-      state.status       = 'failed';
+    } catch (e: any) {
+      state.status = 'error';
       state.currentAgent = undefined;
-      log(state.currentAgent ?? 'report', `Pipeline error: ${err.message ?? 'Unknown failure'}`, 'error');
+      log('report', `Orchestrator failed: ${e.message}`, 'error');
     }
   })();
 

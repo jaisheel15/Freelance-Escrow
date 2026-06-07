@@ -97,9 +97,10 @@ export interface PaymentOutput {
 
 // ── 6. Report Agent ───────────────────────────
 export interface ReportOutput {
-  status:         'success' | 'error';
-  markdownReport: string;
-  summary:        string;
+  status:            'success' | 'error';
+  markdownReport:    string;
+  summary:           string;
+  clientTranslation?: string;
 }
 
 // ── Orchestrator state ────────────────────────
@@ -155,14 +156,15 @@ export interface Repository {
 }
 
 export interface Review {
-  id:          string;
-  project_id:  string;
-  score:       number;
-  confidence:  number;
-  summary:     string;
-  evidence:    string; // JSON
-  created_at:  string;
-  updated_at:  string;
+  id:                 string;
+  project_id:         string;
+  score:              number;
+  confidence:         number;
+  summary:            string;
+  evidence:           string; // JSON
+  client_translation?: string;
+  created_at:         string;
+  updated_at:         string;
 }
 
 export interface Payout {

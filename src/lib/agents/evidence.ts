@@ -6,22 +6,40 @@ import { askLLM } from './llm';
 
 function sha7(c: RepoCommit) { return c.sha.substring(0, 7); }
 
+export function findFuzzyMatch(key: string, obj: Record<string, any>): any | null {
+  if (!obj) return null;
+  if (obj[key] !== undefined) return obj[key];
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const targetNorm = norm(key);
+  for (const k of Object.keys(obj)) {
+    if (norm(k) === targetNorm) return obj[k];
+  }
+  for (const k of Object.keys(obj)) {
+    const kn = norm(k);
+    if (kn.includes(targetNorm) || targetNorm.includes(kn)) return obj[k];
+  }
+  return null;
+}
+
 export async function runEvidenceAgent(
   milestones: { title: string; description: string }[],
   files:   RepoFile[],
   commits: RepoCommit[],
 ): Promise<EvidenceOutput> {
 
-  const systemPrompt = `You are a technical software auditor. You map repository files and commits to project milestones.
-For each milestone, you must decide whether it is:
-- "completed" (strong files and commit evidence present)
-- "partial" (some files or commits exist, but work looks incomplete)
-- "missing" (no relevant code found)
+  const systemPrompt = `You are an advanced technical software auditor. You perform semantic meaning-matching to map repository file paths and commits to specific milestones.
+For each milestone, you are provided with:
+- The title and description.
+- A list of specific "Technical Features" or "Expected Code Signatures".
 
-Input format:
-Milestones: [{ "title": "Auth", "description": "..." }]
-Files: ["src/app/page.tsx", "src/auth/login.ts"]
-Commits: ["a1b2c3d feat: add auth login page"]
+Your job is to look at the list of all files and commits in the project and identify:
+1. Files whose path or purposes semantically implement those technical features.
+2. Commits that describe working on those technical features.
+
+Assign one of these statuses:
+- "completed": Strong files and commit evidence are present for the technical features.
+- "partial": Some relevant files or commits exist, but it looks like only skeletal code or incomplete files are written.
+- "missing": No code or commits related to these technical features are found.
 
 Return ONLY a JSON object with this exact shape:
 {
@@ -30,14 +48,24 @@ Return ONLY a JSON object with this exact shape:
       "status": "completed" | "partial" | "missing",
       "files": ["matched/file/path1.ts"],
       "commits": ["sha commit message"],
-      "reasoning": "Reasoning for the evidence selection"
+      "reasoning": "Explain exactly why these files and commits match the technical features."
     }
   }
 }`;
 
-  const userPrompt = `Milestones: ${JSON.stringify(milestones)}
-Files: ${JSON.stringify(files.map(f => f.path))}
-Commits: ${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
+  const userPrompt = `Milestones and Technical Features:
+${milestones.map(m => {
+  const parts = m.description.split('\n---TECHNICAL_FEATURES---\n');
+  const desc = parts[0] || '';
+  const techFeatures = parts[1] || 'General structure';
+  return `- Milestone: "${m.title}"\n  Requirement: ${desc}\n  Technical Features to Match: ${techFeatures}`;
+}).join('\n')}
+
+Files in Repository:
+${JSON.stringify(files.map(f => f.path))}
+
+Commits in Repository:
+${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
 
   try {
     const raw = await askLLM(userPrompt, systemPrompt, true);
@@ -48,7 +76,7 @@ Commits: ${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
         let totalConf = 0;
 
         for (const m of milestones) {
-          const match = parsed.evidence[m.title] || { status: 'missing', files: [], commits: [], reasoning: 'No matching evidence found by LLM.' };
+          const match = findFuzzyMatch(m.title, parsed.evidence) || { status: 'missing', files: [], commits: [], reasoning: 'No matching evidence found by LLM.' };
           const status = ['completed', 'partial', 'missing'].includes(match.status) ? match.status : 'missing';
           evidence[m.title] = {
             milestoneTitle: m.title,
@@ -82,7 +110,6 @@ Commits: ${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
     let status: MilestoneEvidence['status'] = 'missing';
     let reasoning = '';
 
-    // ── Auth ───────────────────────────────────────────────────
     if (t.includes('auth') || t.includes('user')) {
       files.forEach(f => { if (/auth|login|register|session/i.test(f.path)) matchedFiles.push(f.path); });
       commits.forEach(c => { if (/auth|login|register|jwt|hash|session/i.test(c.message)) matchedCommits.push(sha7(c) + ' ' + c.message); });
@@ -97,8 +124,6 @@ Commits: ${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
         reasoning = 'No auth-related files or commits detected in the repository.';
       }
     }
-
-    // ── Dashboard ──────────────────────────────────────────────
     else if (t.includes('dashboard') || t.includes('panel') || t.includes('interface')) {
       files.forEach(f => { if (/dashboard|sidebar|header|stat.*card/i.test(f.path)) matchedFiles.push(f.path); });
       commits.forEach(c => { if (/dashboard|sidebar|layout|nav|panel/i.test(c.message)) matchedCommits.push(sha7(c) + ' ' + c.message); });
@@ -113,8 +138,6 @@ Commits: ${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
         reasoning = 'No dashboard or layout files found.';
       }
     }
-
-    // ── CRUD / Core / API ──────────────────────────────────────
     else if (t.includes('crud') || t.includes('task') || t.includes('api') || t.includes('core') || t.includes('service')) {
       files.forEach(f => { if (/api.*task|task.*route|taskList|taskCard|crud/i.test(f.path)) matchedFiles.push(f.path); });
       commits.forEach(c => { if (/task|crud|endpoint|api|validation|schema/i.test(c.message)) matchedCommits.push(sha7(c) + ' ' + c.message); });
@@ -129,8 +152,6 @@ Commits: ${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
         reasoning = 'No CRUD or API route files detected.';
       }
     }
-
-    // ── Web3 ───────────────────────────────────────────────────
     else if (t.includes('wallet') || t.includes('web3') || t.includes('contract')) {
       files.forEach(f => { if (/web3|wallet|provider|contract/i.test(f.path)) matchedFiles.push(f.path); });
       commits.forEach(c => { if (/wallet|viem|wagmi|ethers|web3|contract/i.test(c.message)) matchedCommits.push(sha7(c) + ' ' + c.message); });
@@ -145,8 +166,6 @@ Commits: ${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
         reasoning = 'No Web3 integration files found.';
       }
     }
-
-    // ── Search / Filter ────────────────────────────────────────
     else if (t.includes('search') || t.includes('filter')) {
       files.forEach(f => { if (/search|filter/i.test(f.path)) matchedFiles.push(f.path); });
       commits.forEach(c => { if (/search|filter|query/i.test(c.message)) matchedCommits.push(sha7(c) + ' ' + c.message); });
@@ -158,13 +177,11 @@ Commits: ${JSON.stringify(commits.map(c => `${sha7(c)} ${c.message}`))}`;
         reasoning = 'No search or filter components found.';
       }
     }
-
-    // ── Generic fallback ───────────────────────────────────────
     else {
       files.slice(0, 3).forEach(f => matchedFiles.push(f.path));
       commits.slice(0, 2).forEach(c => matchedCommits.push(sha7(c) + ' ' + c.message));
       status = 'completed';
-      reasoning = 'Repository scaffolding and initial commits satisfy baseline criteria.';
+      reasoning = 'Repository scaffolding satisfies baseline criteria.';
     }
 
     evidence[m.title] = { milestoneTitle: m.title, status, files: matchedFiles, commits: matchedCommits, reasoning };

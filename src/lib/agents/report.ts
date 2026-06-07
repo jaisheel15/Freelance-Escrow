@@ -23,6 +23,7 @@ export async function runReportAgent(
     ? `Partial completion detected. **Release ${recommendedRelease} MON** (${completionPercentage}% of escrow). Remaining ${(escrowAmount - recommendedRelease).toFixed(2)} MON stays locked.`
     : `No verifiable progress. All ${escrowAmount} MON should remain locked in escrow.`;
 
+  // 1. Technical Summary prompt
   const systemPrompt = `You are an expert technical auditor. Write a short, highly professional Executive Summary paragraph summarizing the completion of project "${projectTitle}".
 State that the project is ${completionPercentage}% complete, and comment on the quality of evidence. Keep it under 100 words.`;
 
@@ -37,6 +38,34 @@ Milestones: ${JSON.stringify(milestoneScores)}`;
     summaryAnalysis = await askLLM(userPrompt, systemPrompt, false);
   } catch {
     summaryAnalysis = `The codebase was evaluated against project milestones. Semantic analysis of file structures and commit histories yielded a completion score of ${completionPercentage}% with an auditor confidence of ${confidence}%.`;
+  }
+
+  // 2. Client Translation / PR Decoder prompt
+  const clientSystemPrompt = `You are a translator that bridges complex software code changes and business value for non-technical clients.
+Your job is to write a highly professional, easy-to-understand progress update for the client who funded the escrow contract.
+Explain exactly what was actually built, what is missing or partially done, and what this means for their project, completely avoiding developer terminology (do not use jargon like JWT, database schemas, endpoints, commit hashes, files, APIs, etc.).
+Highlight user-facing outcomes. Format your output in clean, beautiful Markdown with clear headers and bullet points.`;
+
+  const clientUserPrompt = `Project: ${projectTitle}
+Overall Progress: ${completionPercentage}%
+Confidence: ${confidence}%
+Escrow Amount: ${escrowAmount} MON
+Recommended Release: ${recommendedRelease} MON
+Milestone Progress Details:
+${milestoneScores.map(m => `- Milestone "${m.title}": Status is "${m.status}" (${m.completion}% complete). details: ${m.reasoning}`).join('\n')}`;
+
+  let clientTranslation = '';
+  try {
+    clientTranslation = await askLLM(clientUserPrompt, clientSystemPrompt, false);
+  } catch {
+    clientTranslation = `### 📌 Progress Update for Client
+
+We analyzed the repository code for **${projectTitle}** to verify the work completed by your developer.
+
+- **Overall Progress:** **${completionPercentage}%** of the work has been verified.
+- **Completed Features:** Verified milestones include: ${milestoneScores.filter(m => m.completion >= 80).map(m => `**${m.title}**`).join(', ') || 'None yet'}.
+- **Partially Built or Missing:** Remaining modules are either incomplete or missing implementation code.
+- **Payout Recommendation:** We recommend releasing **${recommendedRelease} MON** of the locked escrow pool, leaving the remainder locked until the outstanding work is submitted.`;
   }
 
   let milestoneTable = `| Milestone | Weight | Completion | Status |\n|:---|:---:|:---:|:---:|\n`;
@@ -102,5 +131,6 @@ ${evidenceDetail}
     status: 'success',
     markdownReport,
     summary: `Audit ${auditId} complete. ${completionPercentage}% overall — recommending release of ${recommendedRelease} MON.`,
+    clientTranslation,
   };
 }

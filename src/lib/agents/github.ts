@@ -185,3 +185,45 @@ function daysAgo(n: number) {
   const d = new Date(Date.now() - n * 864e5);
   return d.toISOString();
 }
+
+export async function fetchFileContent(
+  githubUrl: string,
+  filePath: string,
+): Promise<string> {
+  let owner = 'demo-owner';
+  let repo  = 'demo-repo';
+  try {
+    const cleanUrl = githubUrl.replace(/\/$/, '');
+    const parts = cleanUrl.replace('https://github.com/', '').split('/');
+    if (parts.length >= 2) {
+      owner = parts[0];
+      repo  = parts[1].replace('.git', '');
+    }
+  } catch { return ''; }
+
+  const token = process.env.GITHUB_TOKEN || process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+  const headers: Record<string, string> = {
+    'Accept': 'application/vnd.github.v3.raw',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, { headers });
+    if (res.ok) {
+      const text = await res.text();
+      return text;
+    }
+  } catch { /* ignore and fallback */ }
+
+  try {
+    const rawRes = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/${filePath}`);
+    if (rawRes.ok) return await rawRes.text();
+
+    const rawResMaster = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/master/${filePath}`);
+    if (rawResMaster.ok) return await rawResMaster.text();
+  } catch { /* ignore */ }
+
+  return '';
+}

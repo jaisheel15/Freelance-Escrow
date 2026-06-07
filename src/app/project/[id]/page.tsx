@@ -25,6 +25,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [selectedEv,   setSelectedEv]   = useState<string | null>(null);
   const [parsedEvidence, setParsedEvidence] = useState<Record<string, any>>({});
   const [releasingId,  setReleasingId]  = useState<string | null>(null);
+  const [reportView,   setReportView]   = useState<'technical' | 'client'>('client');
 
   async function fetchData() {
     const r = await fetch(`/api/projects/${id}`);
@@ -129,15 +130,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href={`/visualizer?projectId=${id}`} className="btn-ghost text-xs">
-              <Cpu className="w-3.5 h-3.5" />
-              AI Monitor
-            </Link>
             <button id="trigger-audit-btn"
               onClick={triggerAudit}
               disabled={auditing || !repository}
-              className="btn-primary text-sm px-4 py-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none">
-              {auditing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Running…</> : <><Play className="w-3.5 h-3.5" /> Run AI Audit</>}
+              className="bg-[#DA7756] text-[#0e0c0a] font-extrabold text-sm px-6 py-3.5 rounded-lg shadow-lg hover:bg-[#e0896a] hover:scale-[1.03] transition-all flex items-center gap-2 disabled:opacity-45 disabled:scale-100 disabled:cursor-not-allowed">
+              {auditing ? <><Loader2 className="w-4 h-4 animate-spin" /> Running AI Audit…</> : <><Play className="w-4 h-4 fill-current" /> Run AI Audit</>}
             </button>
           </div>
         </div>
@@ -177,18 +174,18 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                       Release <strong style={{ color: '#DA7756' }}>{payout.amount} MON</strong> ({payout.release_percentage}% of escrow)
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5 items-center">
                     <button id={`refund-${payout.id}`}
                       onClick={() => handlePayout(payout.id, 'refund')}
                       disabled={!!releasingId}
-                      className="btn-secondary text-xs px-3 py-1.5">
-                      {releasingId === payout.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Refund'}
+                      className="border border-neutral-800 hover:border-red-950 hover:text-red-400 text-[#9a8f82] transition-all text-xs px-4 py-2.5 rounded disabled:opacity-40">
+                      {releasingId === payout.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Refund'}
                     </button>
                     <button id={`approve-${payout.id}`}
                       onClick={() => handlePayout(payout.id, 'approve')}
                       disabled={!!releasingId}
-                      className="btn-primary text-xs px-3 py-1.5">
-                      {releasingId === payout.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Approve Release'}
+                      className="bg-[#DA7756] text-[#0e0c0a] hover:bg-[#e0896a] hover:scale-[1.02] transition-all font-bold text-xs px-5 py-2.5 rounded shadow-md flex items-center gap-1.5 disabled:opacity-40">
+                      {releasingId === payout.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><CheckCircle className="w-3.5 h-3.5" /> Approve Release</>}
                     </button>
                   </div>
                 </div>
@@ -206,12 +203,24 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               <div className="space-y-2">
                 {milestones.map(m => {
                   const cfg = milestoneStatus[m.status] ?? { cls: 'badge-orange' };
+                  const descParts = m.description.split('\n---TECHNICAL_FEATURES---\n');
+                  const clientDesc = descParts[0] || '';
+                  const techFeatures = descParts[1] || '';
                   return (
                     <div key={m.id} className="glass-card glass-card-hover p-4">
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="font-medium text-sm" style={{ color: '#F5ECD7' }}>{m.title}</p>
-                          <p className="text-xs mt-0.5 line-clamp-1" style={{ color: '#9a8f82' }}>{m.description}</p>
+                          <p className="text-xs mt-0.5" style={{ color: '#9a8f82' }}>{clientDesc}</p>
+                          {techFeatures && reportView === 'technical' && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {techFeatures.split(',').map((feat, idx) => (
+                                <span key={idx} className="px-1.5 py-0.5 rounded text-[9px] bg-neutral-900 border border-neutral-800 text-[#F5ECD7] font-mono">
+                                  ⚙️ {feat.trim()}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className={`badge ${cfg.cls}`}>{m.status}</span>
@@ -241,21 +250,59 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             </div>
 
             {/* Latest report */}
-            {latestReview && (
-              <div className="glass-card overflow-hidden">
-                <div className="flex items-center gap-2.5 px-5 py-3"
-                  style={{ background: '#141210', borderBottom: '1px solid #2e2b26' }}>
-                  <FileCode className="w-4 h-4" style={{ color: '#DA7756' }} />
-                  <span className="font-medium text-sm" style={{ color: '#F5ECD7' }}>Audit Report</span>
-                  <span className="ml-auto badge badge-green">Confidence: {latestReview.confidence}%</span>
+            {latestReview && (() => {
+              const summaryParts = latestReview.summary.split('\n---CLIENT_TRANSLATION---\n');
+              const technicalReport = summaryParts[0] || '';
+              const clientTranslation = summaryParts[1] || '';
+              return (
+                <div className="glass-card overflow-hidden">
+                  <div className="flex items-center gap-4 px-5 py-2.5"
+                    style={{ background: '#141210', borderBottom: '1px solid #2e2b26' }}>
+                    <div className="flex items-center gap-2">
+                      <FileCode className="w-4 h-4" style={{ color: '#DA7756' }} />
+                      <span className="font-medium text-sm text-[#F5ECD7]">Review Reports</span>
+                    </div>
+                    {/* View Selector Tabs */}
+                    <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-md border border-neutral-800 text-xs">
+                      <button onClick={() => setReportView('client')}
+                        className={`px-2.5 py-1 rounded transition-all font-medium ${reportView === 'client' ? 'bg-[#DA7756] text-[#0e0c0a] font-bold' : 'text-[#9a8f82] hover:text-[#F5ECD7]'}`}>
+                        Client View (Simple)
+                      </button>
+                      <button onClick={() => setReportView('technical')}
+                        className={`px-2.5 py-1 rounded transition-all font-medium ${reportView === 'technical' ? 'bg-[#DA7756] text-[#0e0c0a] font-bold' : 'text-[#9a8f82] hover:text-[#F5ECD7]'}`}>
+                        Auditor View (Technical)
+                      </button>
+                    </div>
+                    <span className="ml-auto badge badge-green">Confidence: {latestReview.confidence}%</span>
+                  </div>
+                  <div className="p-5 max-h-96 overflow-y-auto">
+                    {reportView === 'client' && clientTranslation ? (
+                      <div className="text-xs leading-relaxed space-y-3 prose prose-invert font-mono" style={{ color: '#9a8f82' }}>
+                        {clientTranslation.split('\n').map((line, i) => {
+                          if (line.startsWith('### ')) {
+                            return <h3 key={i} className="text-sm font-bold text-[#F5ECD7] mt-3 mb-1">{line.replace('### ', '')}</h3>;
+                          }
+                          if (line.startsWith('## ')) {
+                            return <h2 key={i} className="text-sm font-extrabold text-[#F5ECD7] mt-4 mb-2">{line.replace('## ', '')}</h2>;
+                          }
+                          if (line.startsWith('# ')) {
+                            return <h1 key={i} className="text-base font-black text-[#F5ECD7] mt-5 mb-3">{line.replace('# ', '')}</h1>;
+                          }
+                          if (line.startsWith('- ') || line.startsWith('* ')) {
+                            return <li key={i} className="ml-4 list-disc text-[#9a8f82]">{line.substring(2)}</li>;
+                          }
+                          return <p key={i} className="my-1">{line}</p>;
+                        })}
+                      </div>
+                    ) : (
+                      <pre className="text-xs whitespace-pre-wrap leading-relaxed font-mono" style={{ color: '#9a8f82' }}>
+                        {technicalReport || latestReview.summary}
+                      </pre>
+                    )}
+                  </div>
                 </div>
-                <div className="p-5 max-h-96 overflow-y-auto">
-                  <pre className="text-xs whitespace-pre-wrap leading-relaxed font-mono" style={{ color: '#9a8f82' }}>
-                    {latestReview.summary}
-                  </pre>
-                </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* ── Right: Evidence explorer ── */}
