@@ -20,7 +20,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+bun.lock
 # System Files
 .DS_Store
 Thumbs.db

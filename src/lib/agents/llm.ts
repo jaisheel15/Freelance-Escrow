@@ -1,12 +1,34 @@
 // ─────────────────────────────────────────────
 // Unified LLM Provider Interface
 // ─────────────────────────────────────────────
+import {Groq} from 'groq-sdk'
+
 
 export async function askLLM(prompt: string, systemInstruction: string, jsonMode = false): Promise<string> {
   const nvidiaKey = process.env.NVIDIA_API_KEY || process.env.NEXT_PUBLIC_NVIDIA_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
 
+
+  if(groqKey) {
+    try {
+      const groq = new Groq()
+      const res = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: prompt }
+        ],
+        response_format: jsonMode ? { type: 'json_object' } : undefined,
+        temperature: 0.1,
+        max_tokens: 2048,
+      })
+      const text = res.choices?.[0]?.message?.content;
+      if (text) return text;
+    } catch { /* fallback */ }
+  }
+  
   // 1. Try NVIDIA NIM (Priority 1)
   if (nvidiaKey) {
     try {
