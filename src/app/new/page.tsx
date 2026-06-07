@@ -15,6 +15,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface MilestoneTemplate {
   deliverables: string;
@@ -168,7 +169,10 @@ export default function NewEscrow() {
               Initialize Escrow Contract
             </h1>
           </div>
-          <p style={{ fontSize: 13, color: 'var(--muted)' }}>Provide project specifications to lock escrow funds</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>Provide project specifications to lock escrow funds</p>
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="page-content" style={{ background: 'var(--bg)' }}>

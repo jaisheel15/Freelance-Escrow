@@ -58,10 +58,10 @@ export function StatusBadge({ status }: { status: string }) {
 // ─────────────────────────────────────────────
 
 function scoreColor(score: number) {
-  if (score === 0) return '#DCCABB';
-  if (score >= 80)  return '#5F7A61';
-  if (score >= 50)  return '#D3B9A2';
-  return '#C59A5A';
+  if (score === 0) return 'var(--border)';
+  if (score >= 80)  return 'var(--success)';
+  if (score >= 50)  return 'var(--sand)';
+  return 'var(--warning)';
 }
 
 export function ScoreRing({ score, size = 72, strokeWidth = 5, showLabel = true }: {
@@ -82,7 +82,7 @@ export function ScoreRing({ score, size = 72, strokeWidth = 5, showLabel = true 
   return (
     <div className="ring-wrap" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#EFE5DB" strokeWidth={strokeWidth} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg-alt)" strokeWidth={strokeWidth} />
         <circle ref={ref} cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth}
           strokeLinecap="round" strokeDasharray={`0 ${circ}`}
           style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }} />
@@ -92,7 +92,7 @@ export function ScoreRing({ score, size = 72, strokeWidth = 5, showLabel = true 
           <span style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: Math.round(size * 0.22), fontWeight: 700, color, lineHeight: 1 }}>
             {score === 0 ? '—' : score}
           </span>
-          {score > 0 && <span style={{ fontSize: Math.round(size * 0.14), color: '#9C8A7A', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>%</span>}
+          {score > 0 && <span style={{ fontSize: Math.round(size * 0.14), color: 'var(--subtle)', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>%</span>}
         </div>
       )}
     </div>
@@ -115,7 +115,7 @@ export function KpiCard({ icon, label, value, sub, accent }: {
       {/* Accent bar */}
       {accent && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: accent, borderRadius: '12px 12px 0 0' }} />}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <div style={{ width: 34, height: 34, borderRadius: 9, background: '#EFE5DB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent ?? 'var(--accent)', flexShrink: 0, border: '1px solid var(--border)' }}>
+        <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent ?? 'var(--accent)', flexShrink: 0, border: '1px solid var(--border)' }}>
           {icon}
         </div>
         <span className="stat-label" style={{ margin: 0, fontSize: 11, letterSpacing: '0.03em' }}>{label}</span>
@@ -207,14 +207,14 @@ export function VerdictBanner({ approved, score, amount }: { approved: boolean; 
     <div style={{
       padding: '20px 24px',
       borderRadius: 12,
-      border: `1px solid ${approved ? 'rgba(95,122,97,0.3)' : 'rgba(184,92,92,0.3)'}`,
-      background: approved ? 'rgba(95,122,97,0.04)' : 'rgba(184,92,92,0.04)',
+      border: `1px solid ${approved ? 'var(--success-border)' : 'var(--error-border)'}`,
+      background: approved ? 'var(--success-soft)' : 'var(--error-soft)',
       display: 'flex', alignItems: 'center', gap: 16,
     }}>
-      <div style={{ width: 44, height: 44, borderRadius: 11, background: approved ? 'rgba(95,122,97,0.12)' : 'rgba(184,92,92,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ width: 44, height: 44, borderRadius: 11, background: approved ? 'var(--success-soft)' : 'var(--error-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {approved
-          ? <CheckCircle className="w-6 h-6" style={{ color: '#5F7A61' }} />
-          : <XCircle    className="w-6 h-6" style={{ color: '#B85C5C' }} />}
+          ? <CheckCircle className="w-6 h-6" style={{ color: 'var(--success-icon)' }} />
+          : <XCircle    className="w-6 h-6" style={{ color: 'var(--error-icon)' }} />}
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>
@@ -251,7 +251,7 @@ export function SectionHeader({ eyebrow, title, sub }: { eyebrow?: string; title
 // ─────────────────────────────────────────────
 
 export function ProgressBar({ value, color, label }: { value: number; color?: string; label?: string }) {
-  const c = color ?? (value >= 80 ? '#5F7A61' : value >= 50 ? '#D3B9A2' : '#C59A5A');
+  const c = color ?? (value >= 80 ? 'var(--success)' : value >= 50 ? 'var(--sand)' : 'var(--warning)');
   return (
     <div>
       {label && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11, fontFamily: 'Inter, sans-serif', color: 'var(--muted)' }}>

@@ -20,6 +20,7 @@ import {
   Info,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import type { PipelineState, AgentName } from '@/lib/types';
 
 const AGENT_META: Record<AgentName, {
@@ -32,12 +33,12 @@ const AGENT_META: Record<AgentName, {
   duration: string;
   findings: string;
 }> = {
-  planner:   { label: 'Planner',   role: 'NLP Parser',        desc: 'Converts project requirements into weighted, verifiable milestones.',       Icon: ClipboardCheck, iconBg: '#F7F4F1', iconColor: '#8B6F5A', duration: '1.2s', findings: '4 milestones' },
-  github:    { label: 'GitHub',    role: 'Repo Intelligence', desc: 'Scans all files, commit history, and PR diffs from the linked repository.',  Icon: Github,         iconBg: '#F7F4F1', iconColor: '#2F2F2F', duration: '2.5s', findings: '14 files parsed' },
-  evidence:  { label: 'Evidence',  role: 'Proof Extractor',   desc: 'Semantically maps every code artifact and commit to a project milestone.',   Icon: Search,         iconBg: '#EFE5DB', iconColor: '#8B6F5A', duration: '4.8s', findings: '8 commits matched' },
-  milestone: { label: 'Milestone', role: 'Completion Scorer', desc: 'Grades each milestone 0–100% from the extracted evidence and code quality.', Icon: Flag,           iconBg: '#EFE5DB', iconColor: '#5F7A61', duration: '3.1s', findings: '87% completion score' },
-  payment:   { label: 'Payment',   role: 'Payout Arbitrator', desc: 'Computes weighted escrow release based on overall completion and confidence.',Icon: Banknote,       iconBg: '#F7F4F1', iconColor: '#C59A5A', duration: '0.9s', findings: '1 release payload' },
-  report:    { label: 'Report',    role: 'Audit Compiler',    desc: 'Generates a structured markdown audit report for both client and developer.', Icon: ShieldCheck,    iconBg: '#F7F4F1', iconColor: '#B85C5C', duration: '1.5s', findings: '1 report compiled' },
+  planner:   { label: 'Planner',   role: 'NLP Parser',        desc: 'Converts project requirements into weighted, verifiable milestones.',       Icon: ClipboardCheck, iconBg: 'var(--bg)', iconColor: 'var(--accent)', duration: '1.2s', findings: '4 milestones' },
+  github:    { label: 'GitHub',    role: 'Repo Intelligence', desc: 'Scans all files, commit history, and PR diffs from the linked repository.',  Icon: Github,         iconBg: 'var(--bg)', iconColor: 'var(--text)', duration: '2.5s', findings: '14 files parsed' },
+  evidence:  { label: 'Evidence',  role: 'Proof Extractor',   desc: 'Semantically maps every code artifact and commit to a project milestone.',   Icon: Search,         iconBg: 'var(--bg-alt)', iconColor: 'var(--accent)', duration: '4.8s', findings: '8 commits matched' },
+  milestone: { label: 'Milestone', role: 'Completion Scorer', desc: 'Grades each milestone 0–100% from the extracted evidence and code quality.', Icon: Flag,           iconBg: 'var(--bg-alt)', iconColor: 'var(--success)', duration: '3.1s', findings: '87% completion score' },
+  payment:   { label: 'Payment',   role: 'Payout Arbitrator', desc: 'Computes weighted escrow release based on overall completion and confidence.',Icon: Banknote,       iconBg: 'var(--bg)', iconColor: 'var(--warning)', duration: '0.9s', findings: '1 release payload' },
+  report:    { label: 'Report',    role: 'Audit Compiler',    desc: 'Generates a structured markdown audit report for both client and developer.', Icon: ShieldCheck,    iconBg: 'var(--bg)', iconColor: 'var(--error)', duration: '1.5s', findings: '1 report compiled' },
 };
 
 const AGENT_SUMMARIES: Record<AgentName, { active: string; done: string }> = {
@@ -188,6 +189,7 @@ function VisualizerContent() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ThemeToggle />
             <span className={statusBadge[status] ?? 'badge badge-gray'}>
               <span className="badge-dot" /> {status.toUpperCase()}
             </span>
@@ -300,7 +302,7 @@ function VisualizerContent() {
                           <span style={{ fontSize: 11, color: 'var(--subtle)', fontFamily: 'Inter' }}>· {meta.role}</span>
 
                           {isActive && <Loader2 className="w-3.5 h-3.5 animate-spin ml-auto" style={{ color: meta.iconColor, flexShrink: 0 }} />}
-                          {isDone   && <CheckCircle className="w-4 h-4 ml-auto" style={{ color: '#5F7A61', flexShrink: 0 }} />}
+                          {isDone   && <CheckCircle className="w-4 h-4 ml-auto" style={{ color: 'var(--success)', flexShrink: 0 }} />}
                           {isFailed && <AlertCircle className="w-4 h-4 ml-auto" style={{ color: 'var(--error)', flexShrink: 0 }} />}
                         </div>
                         <p style={{ fontSize: 12, color: 'var(--subtle)', lineHeight: 1.5, fontFamily: 'Inter', marginBottom: 8 }}>{meta.desc}</p>
@@ -341,7 +343,7 @@ function VisualizerContent() {
                           const lastLog = agentLogs[agentLogs.length - 1];
                           if (!lastLog) return null;
                           return (
-                            <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 6, background: '#1C1814', border: '1px solid var(--border)', fontSize: 11, color: '#9C8A7A', fontFamily: 'monospace', lineHeight: 1.5 }}>
+                            <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 6, background: 'var(--bg)', border: '1px solid var(--border)', fontSize: 11, color: 'var(--muted)', fontFamily: 'monospace', lineHeight: 1.5 }}>
                               <span style={{ color: LOG_COLORS[lastLog.type] }}>
                                 [{lastLog.type.toUpperCase()}]
                               </span>{' '}

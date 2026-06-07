@@ -20,6 +20,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { VerdictBanner, ConfidenceBadge, RiskBadge, ScoreRing, StatusBadge } from '@/components/ui';
 import type { Project, Milestone, Review, Payout } from '@/lib/types';
 
@@ -28,7 +29,7 @@ type PageData = { project: Project; milestones: Milestone[]; repository: any; re
 function fmt$(n: number) { return n.toLocaleString('en-US') + ' MON'; }
 
 function scoreColor(s: number) {
-  return s === 0 ? '#DCCABB' : s >= 80 ? '#5F7A61' : s >= 50 ? '#D3B9A2' : '#C59A5A';
+  return s === 0 ? 'var(--border)' : s >= 80 ? 'var(--success)' : s >= 50 ? 'var(--sand)' : 'var(--warning)';
 }
 
 // ── Markdown renderer ─────────────────────────────────────────────────────────
@@ -247,6 +248,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <StatusBadge status={project.escrow_status} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ThemeToggle />
             {repository && (
               <a href={repository.github_url} target="_blank" rel="noreferrer" className="btn-ghost" style={{ fontSize: 12.5 }}>
                 <Github className="w-3.5 h-3.5" />

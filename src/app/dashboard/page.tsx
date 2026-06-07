@@ -12,6 +12,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { KpiCard, StatusBadge, ScoreRing, SkeletonKpi, EmptyState } from '@/components/ui';
 import type { Project } from '@/lib/types';
 
@@ -58,6 +59,7 @@ export default function Dashboard() {
             </h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ThemeToggle />
             <button onClick={loadData} className="btn-ghost" style={{ padding: '7px 11px' }}>
               <RefreshCw className={`w-4 h-4 ${loading ? 'spin' : ''}`} />
             </button>
