@@ -283,113 +283,130 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         <div style={{ flex: 1, overflowY: 'auto', padding: 28, background: 'var(--bg)' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
+            {/* ── AI AUDIT & SETTLEMENT CONTROL CENTER ── */}
+            {latestReview && (
+              <div className="card animate-slide-up" style={{ padding: '24px 28px', marginBottom: 22, overflow: 'hidden', border: '2px solid var(--sand)', background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--sand-soft) 100%)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Inter', marginBottom: 2 }}>
+                      AI Agent Verdict
+                    </div>
+                    <h2 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
+                      {latestPendingPayout ? 'Escrow Settlement Request' : 'Latest Verification Audit Result'}
+                    </h2>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <ConfidenceBadge score={score} />
+                    <RiskBadge score={score} />
+                  </div>
+                </div>
+
+                <VerdictBanner approved={score >= 80} score={score} amount={fmt$(releaseAmt)} />
+
+                {/* Audit Details Row */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: 16,
+                  background: 'var(--bg-card)',
+                  borderRadius: 10,
+                  padding: '16px 20px',
+                  marginTop: 16,
+                  border: '1px solid var(--border)',
+                }}>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Inter' }}>Recommended Action</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: score >= 50 ? 'var(--success)' : 'var(--error)' }}>
+                      {actionText}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Inter' }}>Release Suggestion</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>
+                      {fmt$(releaseAmt)} ({releasePct}%)
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Inter' }}>Audit Score</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: scoreColor(score) }}>
+                      {score}% Verified
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Inter' }}>Escrow Budget</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--accent)' }}>
+                      {fmt$(project.escrow_amount)}
+                    </div>
+                  </div>
+                </div>
+
+                {latestPendingPayout && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                    <button
+                      id={`refund-${latestPendingPayout.id}`}
+                      onClick={() => handlePayout(latestPendingPayout.id, 'refund')}
+                      disabled={!!releasingId}
+                      className="btn-secondary"
+                      style={{ padding: '9px 18px', fontWeight: 600 }}
+                    >
+                      {releasingId === latestPendingPayout.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><RotateCcw className="w-3.5 h-3.5" /> Reject & Request Revisions</>}
+                    </button>
+                    <button
+                      id={`approve-${latestPendingPayout.id}`}
+                      onClick={() => handlePayout(latestPendingPayout.id, 'approve')}
+                      disabled={!!releasingId}
+                      className="btn-success"
+                      style={{ padding: '9px 24px', fontWeight: 800, background: 'var(--success)', color: '#fff', border: 'none' }}
+                    >
+                      {releasingId === latestPendingPayout.id
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /> Confirming Settlement…</>
+                        : <><CheckCircle className="w-4.5 h-4.5" /> Approve & Release {fmt$(releaseAmt)}</>}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Project Header Card */}
             <div className="card" style={{ padding: '28px 32px', marginBottom: 22, background: 'var(--bg-card)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 11 }}>
                     <span style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', fontFamily: 'Inter' }}>
-                      ESCROW CONTRACT
+                      Escrow Contract Info
                     </span>
                     <StatusBadge status={project.escrow_status} />
                   </div>
-                  <h1 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 10, color: 'var(--text)' }}>
+                  <h1 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 10, color: 'var(--text)' }}>
                     {project.title}
                   </h1>
-                  <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.65, marginBottom: 20, maxWidth: 620 }}>
+                  <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65, marginBottom: 20, maxWidth: 720 }}>
                     {project.description}
                   </p>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
-                    {[
-                      { label: 'Escrow Amount',   value: fmt$(project.escrow_amount),                                        color: 'var(--text)'    },
-                      { label: 'AI Audit Score',  value: latestReview ? `${latestReview.score}%` : '—',                      color: latestReview ? scoreColor(latestReview.score) : 'var(--subtle)' },
-                      { label: 'Milestones Done', value: `${done} / ${milestones.length}`,                                   color: 'var(--success)' },
-                    ].map(({ label, value, color }) => (
-                      <div key={label} style={{ background: 'var(--bg)', borderRadius: 10, padding: '12px 16px', border: '1px solid var(--border)' }}>
-                        <div style={{ fontSize: 10, color: 'var(--subtle)', marginBottom: 6, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', fontFamily: 'Inter' }}>{label}</div>
-                        <div style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 20, fontWeight: 700, color, letterSpacing: '-0.02em' }}>{value}</div>
-                      </div>
-                    ))}
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 12, color: 'var(--subtle)', fontWeight: 500, fontFamily: 'Inter' }}>Total Escrow Locked:</span>
+                      <span style={{ fontFamily: 'Inter', fontSize: 13.5, fontWeight: 800, color: 'var(--accent)', background: 'var(--sand-soft)', padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
+                        {fmt$(project.escrow_amount)}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 12, color: 'var(--subtle)', fontWeight: 500, fontFamily: 'Inter' }}>Milestones Verified:</span>
+                      <span style={{ fontFamily: 'Inter', fontSize: 13.5, fontWeight: 800, color: 'var(--success)', background: 'var(--success-soft)', padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
+                        {done} / {milestones.length}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'center' }}>
-                  <ScoreRing score={overallCompletion} size={96} strokeWidth={5.5} />
-                  <div style={{ fontSize: 11, color: 'var(--subtle)', marginTop: 8, fontFamily: 'Inter' }}>Overall Progress</div>
-                  <div className="prog-track" style={{ marginTop: 7, width: 96, height: 4 }}>
-                    <div className="prog-fill" style={{ width: `${overallCompletion}%`, background: scoreColor(overallCompletion) }} />
-                  </div>
+                <div style={{ textAlign: 'center', padding: '10px 20px', borderLeft: '1px solid var(--border)' }}>
+                  <ScoreRing score={overallCompletion} size={84} strokeWidth={7} />
+                  <div style={{ fontSize: 11.5, color: 'var(--subtle)', marginTop: 8, fontFamily: 'Inter', fontWeight: 600 }}>Overall Progress</div>
                 </div>
               </div>
             </div>
-
-            {/* Settlement recommendation panel */}
-            {latestPendingPayout && (
-              <div className="card animate-slide-up" style={{ padding: '24px 28px', marginBottom: 22, overflow: 'hidden' }}>
-                <VerdictBanner approved={score >= 80} score={score} amount={fmt$(releaseAmt)} />
-
-                {/* Premium Recommendation Info Panel */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: 16,
-                  background: 'var(--bg)',
-                  borderRadius: 8,
-                  padding: '16px',
-                  marginTop: 16,
-                  border: '1px solid var(--border)',
-                }}>
-                  <div>
-                    <div style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Inter' }}>Recommended Action</div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: score >= 50 ? 'var(--success)' : 'var(--error)' }}>
-                      {actionText}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Inter' }}>Release Amount</div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>
-                      {fmt$(releaseAmt)} ({releasePct}%)
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Inter' }}>AI Confidence</div>
-                    <div style={{ display: 'inline-flex', marginTop: 1 }}>
-                      <ConfidenceBadge score={score} />
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Inter' }}>Escrow Risk Profile</div>
-                    <div style={{ display: 'inline-flex', marginTop: 1 }}>
-                      <RiskBadge score={score} />
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-                  <button
-                    id={`refund-${latestPendingPayout.id}`}
-                    onClick={() => handlePayout(latestPendingPayout.id, 'refund')}
-                    disabled={!!releasingId}
-                    className="btn-secondary"
-                    style={{ padding: '8px 16px' }}
-                  >
-                    {releasingId === latestPendingPayout.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><RotateCcw className="w-3.5 h-3.5" /> Reject & Request Revisions</>}
-                  </button>
-                  <button
-                    id={`approve-${latestPendingPayout.id}`}
-                    onClick={() => handlePayout(latestPendingPayout.id, 'approve')}
-                    disabled={!!releasingId}
-                    className="btn-success"
-                    style={{ padding: '9px 24px', fontWeight: 700 }}
-                  >
-                    {releasingId === latestPendingPayout.id
-                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Confirming Settlement…</>
-                      : <><CheckCircle className="w-4.5 h-4.5" /> Approve & Release {fmt$(releaseAmt)}</>}
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Main grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, alignItems: 'start' }}>

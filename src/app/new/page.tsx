@@ -196,7 +196,7 @@ export default function NewEscrow() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24, alignItems: 'start', marginBottom: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24, alignItems: 'start', marginBottom: 28 }}>
 
               {/* Form Card */}
               <form onSubmit={handleSubmit}>
@@ -300,9 +300,9 @@ export default function NewEscrow() {
               </form>
 
               {/* Side Panels */}
-              <div>
-                {/* Escrow flow (With Lucide Icons) */}
-                <div className="card" style={{ padding: '16px 20px', marginBottom: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Escrow flow */}
+                <div className="card" style={{ padding: '16px 20px', background: 'var(--bg-card)' }}>
                   <div className="sect-label">Contract Protocol</div>
                   {[
                     { icon: Lock, t: 'Funds Locked', d: 'Budget held in Monad Smart Escrow Contract.' },
@@ -323,76 +323,64 @@ export default function NewEscrow() {
                     );
                   })}
                 </div>
-              </div>
-            </div>
 
-            {/* AI Milestone Preview (Moved to bottom as a rich full-width table layout) */}
-            <div className="card animate-slide-up" style={{ overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 9, background: 'var(--bg-card)' }}>
-                <Sparkles className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-                <h3 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
-                  Realtime Escrow Milestones Engine
-                </h3>
-                {previewMs.length > 0 && (
-                  <span className="badge badge-sand" style={{ marginLeft: 'auto' }}>
-                    {previewMs.length} Milestones Scheduled
-                  </span>
-                )}
-              </div>
-
-              {previewMs.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '48px 30px' }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', border: '1px solid var(--border)' }}>
-                    <Flag className="w-5 h-5" style={{ color: 'var(--subtle)' }} />
+                {/* AI Milestone Preview */}
+                <div className="card animate-slide-up" style={{ overflow: 'hidden', background: 'var(--bg-card)' }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <Sparkles className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+                    <h3 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
+                      Realtime Milestones Engine
+                    </h3>
+                    {previewMs.length > 0 && (
+                      <span className="badge badge-sand" style={{ marginLeft: 'auto' }}>
+                        {previewMs.length} Milestones
+                      </span>
+                    )}
                   </div>
-                  <p style={{ fontSize: 13, color: 'var(--subtle)', maxWidth: 420, margin: '0 auto' }}>
-                    Start typing project details in the form above. The AI engine will parse your guidelines and draft the milestone deliverables in realtime.
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <table className="krow-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: '22%' }}>Milestone</th>
-                        <th style={{ width: '48%' }}>Expected Deliverables</th>
-                        <th style={{ width: '20%' }}>Verification Agent Method</th>
-                        <th style={{ width: '10%', textAlign: 'right' }}>Weight</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {previewMs.map((ms, i) => (
-                        <tr key={ms.name}>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <div style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--accent)', border: '1px solid var(--border)' }}>
-                                {i + 1}
+
+                  {previewMs.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '36px 20px' }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', border: '1px solid var(--border)' }}>
+                        <Flag className="w-5 h-5" style={{ color: 'var(--subtle)' }} />
+                      </div>
+                      <p style={{ fontSize: 12.5, color: 'var(--subtle)', lineHeight: 1.5, maxWidth: 280, margin: '0 auto' }}>
+                        Start typing project details. The AI engine will parse your guidelines and draft milestones in realtime.
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12, maxOverflowY: '380px', overflowY: 'auto' }}>
+                        {previewMs.map((ms, i) => (
+                          <div key={ms.name} style={{ background: 'var(--bg)', borderRadius: 10, border: '1px solid var(--border)', padding: '12px 14px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <div style={{ width: 18, height: 18, borderRadius: 5, background: 'var(--bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--accent)', border: '1px solid var(--border)' }}>
+                                  {i + 1}
+                                </div>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{ms.name}</span>
                               </div>
-                              <span style={{ fontWeight: 600, color: 'var(--text)' }}>{ms.name}</span>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', fontFamily: 'monospace' }}>
+                                {weightPer}%
+                              </span>
                             </div>
-                          </td>
-                          <td style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
-                            {ms.deliverables}
-                          </td>
-                          <td style={{ fontSize: 12, color: 'var(--subtle)' }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg)', padding: '3px 8px', borderRadius: 4, border: '1px solid var(--border)' }}>
-                              <Bot className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                              {ms.verification}
-                            </span>
-                          </td>
-                          <td style={{ textAlign: 'right', fontWeight: 600, fontFamily: 'monospace', color: 'var(--accent)' }}>
-                            {weightPer}%
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)', background: 'var(--bg)', fontSize: 12, color: 'var(--subtle)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Sparkles className="w-4 h-4" style={{ color: 'var(--success)' }} />
-                    <span>Weights are automatically balanced equally across all generated milestones upon contract deploy.</span>
-                  </div>
+                            <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, marginBottom: 8 }}>
+                              {ms.deliverables}
+                            </p>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-card)', padding: '4px 8px', borderRadius: 4, border: '1px solid var(--border)', fontSize: 10.5, color: 'var(--subtle)', maxWidth: '100%', overflow: 'hidden' }}>
+                              <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{ms.verification}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', background: 'var(--bg)', fontSize: 11, color: 'var(--subtle)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--success)', flexShrink: 0 }} />
+                        <span>Weights automatically balanced equally.</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

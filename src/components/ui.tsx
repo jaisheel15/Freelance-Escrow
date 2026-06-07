@@ -64,7 +64,7 @@ function scoreColor(score: number) {
   return 'var(--warning)';
 }
 
-export function ScoreRing({ score, size = 72, strokeWidth = 5, showLabel = true }: {
+export function ScoreRing({ score, size = 84, strokeWidth = 7, showLabel = true }: {
   score: number;
   size?: number;
   strokeWidth?: number;
@@ -82,17 +82,17 @@ export function ScoreRing({ score, size = 72, strokeWidth = 5, showLabel = true 
   return (
     <div className="ring-wrap" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg-alt)" strokeWidth={strokeWidth} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border)" strokeWidth={strokeWidth} style={{ opacity: 0.4 }} />
         <circle ref={ref} cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth}
           strokeLinecap="round" strokeDasharray={`0 ${circ}`}
           style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }} />
       </svg>
       {showLabel && (
         <div className="ring-label">
-          <span style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: Math.round(size * 0.22), fontWeight: 700, color, lineHeight: 1 }}>
+          <span style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: Math.round(size * 0.26), fontWeight: 800, color, lineHeight: 1 }}>
             {score === 0 ? '—' : score}
           </span>
-          {score > 0 && <span style={{ fontSize: Math.round(size * 0.14), color: 'var(--subtle)', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>%</span>}
+          {score > 0 && <span style={{ fontSize: Math.round(size * 0.15), color: 'var(--muted)', fontFamily: 'Inter, sans-serif', fontWeight: 600, lineHeight: 1, marginLeft: 1 }}>%</span>}
         </div>
       )}
     </div>
@@ -103,25 +103,69 @@ export function ScoreRing({ score, size = 72, strokeWidth = 5, showLabel = true 
 //  KPI CARD
 // ─────────────────────────────────────────────
 
-export function KpiCard({ icon, label, value, sub, accent }: {
+export function KpiCard({ icon, label, value, sub, accent, featured }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   sub?: string;
   accent?: string;
+  featured?: boolean;
 }) {
   return (
-    <div className="stat-card card-elevated" style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Accent bar */}
-      {accent && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: accent, borderRadius: '12px 12px 0 0' }} />}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent ?? 'var(--accent)', flexShrink: 0, border: '1px solid var(--border)' }}>
-          {icon}
+    <div 
+      className={`stat-card card-elevated ${featured ? 'kpi-featured' : ''}`} 
+      style={{ 
+        position: 'relative', 
+        overflow: 'hidden',
+        gridColumn: featured ? 'span 2' : 'span 1',
+        padding: featured ? '26px 28px' : '22px 24px',
+        background: featured ? 'linear-gradient(135deg, var(--bg-card) 0%, var(--sand-soft) 100%)' : 'var(--bg-card)',
+        border: featured ? '2px solid var(--sand)' : '1px solid var(--border)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        minHeight: featured ? 144 : 'auto',
+      }}
+    >
+      {/* Accent bar or glow */}
+      {accent && !featured && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, borderRadius: '12px 12px 0 0' }} />}
+      {featured && <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, background: 'var(--sand)' }} />}
+      
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: featured ? 14 : 10 }}>
+          <div style={{ 
+            width: featured ? 38 : 34, 
+            height: featured ? 38 : 34, 
+            borderRadius: 9, 
+            background: featured ? 'var(--sand-soft)' : 'var(--bg-alt)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            color: featured ? 'var(--accent)' : (accent ?? 'var(--accent)'), 
+            flexShrink: 0, 
+            border: '1px solid var(--border)' 
+          }}>
+            {icon}
+          </div>
+          <span className="stat-label" style={{ 
+            margin: 0, 
+            fontSize: featured ? 12 : 11, 
+            letterSpacing: '0.04em', 
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            color: featured ? 'var(--accent)' : 'var(--subtle)'
+          }}>{label}</span>
         </div>
-        <span className="stat-label" style={{ margin: 0, fontSize: 11, letterSpacing: '0.03em' }}>{label}</span>
+        <div className="stat-val" style={{ 
+          fontSize: featured ? 42 : 32, 
+          fontWeight: 900,
+          marginBottom: sub ? (featured ? 6 : 4) : 0,
+          lineHeight: 1.1,
+          letterSpacing: '-0.02em',
+          color: 'var(--text)'
+        }}>{value}</div>
       </div>
-      <div className="stat-val" style={{ marginBottom: sub ? 5 : 0 }}>{value}</div>
-      {sub && <div className="stat-sub">{sub}</div>}
+      {sub && <div className="stat-sub" style={{ fontSize: featured ? 13 : 12, color: 'var(--muted)', fontWeight: 500 }}>{sub}</div>}
     </div>
   );
 }

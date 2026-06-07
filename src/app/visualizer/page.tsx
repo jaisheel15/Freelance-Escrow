@@ -71,10 +71,10 @@ const AGENT_SUMMARIES: Record<AgentName, { active: string; done: string }> = {
 const PIPELINE: AgentName[] = ['github', 'evidence', 'milestone', 'payment', 'report'];
 
 const LOG_COLORS: Record<string, string> = {
-  info:    '#9C8A7A',
-  success: '#5F7A61',
-  error:   '#B85C5C',
-  warning: '#C59A5A',
+  info:    '#BCAFA5',
+  success: '#4ADE80',
+  error:   '#F87171',
+  warning: '#FBBF24',
 };
 
 function VisualizerContent() {
@@ -265,7 +265,18 @@ function VisualizerContent() {
               </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 20, paddingLeft: 30 }}>
+              {/* Pipeline connecting line */}
+              <div style={{
+                position: 'absolute',
+                left: 8,
+                top: 24,
+                bottom: 24,
+                width: 2,
+                background: 'repeating-linear-gradient(to bottom, var(--border), var(--border) 4px, transparent 4px, transparent 8px)',
+                zIndex: 0
+              }} />
+
               {PIPELINE.map((agent, idx) => {
                 const meta     = AGENT_META[agent];
                 const isActive = curAgent === agent;
@@ -277,80 +288,116 @@ function VisualizerContent() {
                 const runStatus = isDone ? 'completed' : isActive ? 'running' : 'idle';
 
                 return (
-                  <div
-                    key={agent}
-                    className={`agent-card${isActive ? ' agent-active' : isDone ? ' agent-done' : isFailed ? ' agent-error' : ''}`}
-                    style={{ padding: '16px 18px', borderRadius: 10 }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                      <div style={{
-                        width: 38, height: 38, borderRadius: 8, flexShrink: 0,
-                        background: isActive ? meta.iconBg : isDone ? 'rgba(95,122,97,0.08)' : 'var(--bg)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: `1px solid ${isActive ? meta.iconColor + '30' : isDone ? 'rgba(95,122,97,0.2)' : 'var(--border)'}`,
-                      }}>
-                        <Icon className="w-5 h-5" style={{ color: isActive ? meta.iconColor : isDone ? '#5F7A61' : 'var(--subtle)' }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--subtle)', fontFamily: 'monospace' }}>
-                            A{idx + 1}
-                          </span>
-                          <h3 style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: isActive ? meta.iconColor : isDone ? 'var(--text)' : 'var(--muted)' }}>
-                            {meta.label} Agent
-                          </h3>
-                          <span style={{ fontSize: 11, color: 'var(--subtle)', fontFamily: 'Inter' }}>· {meta.role}</span>
+                  <div key={agent} style={{ position: 'relative', zIndex: 1 }}>
+                    {/* Pipeline node dot indicator on the left connector line */}
+                    <div style={{
+                      position: 'absolute',
+                      left: -32,
+                      top: 10,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: isDone ? 'var(--success)' : isActive ? 'var(--warning)' : 'var(--bg)',
+                      border: `2px solid ${isDone ? 'var(--success)' : isActive ? 'var(--sand)' : 'var(--border)'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 2,
+                      boxShadow: isActive ? '0 0 10px var(--warning)' : 'none',
+                    }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: isDone || isActive ? '#fff' : 'var(--muted)' }} />
+                    </div>
 
-                          {isActive && <Loader2 className="w-3.5 h-3.5 animate-spin ml-auto" style={{ color: meta.iconColor, flexShrink: 0 }} />}
-                          {isDone   && <CheckCircle className="w-4 h-4 ml-auto" style={{ color: 'var(--success)', flexShrink: 0 }} />}
-                          {isFailed && <AlertCircle className="w-4 h-4 ml-auto" style={{ color: 'var(--error)', flexShrink: 0 }} />}
+                    <div
+                      className={`agent-card${isActive ? ' agent-active' : isDone ? ' agent-done' : isFailed ? ' agent-error' : ''}`}
+                      style={{ 
+                        padding: '20px 22px', 
+                        borderRadius: 14,
+                        background: isActive ? 'var(--sand-soft)' : 'var(--bg-card)',
+                        border: `1px solid ${isActive ? 'var(--sand)' : isDone ? 'var(--success-border)' : 'var(--border)'}`
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                        <div style={{
+                          width: 42, height: 42, borderRadius: 10, flexShrink: 0,
+                          background: isActive ? 'var(--sand-soft)' : isDone ? 'var(--success-soft)' : 'var(--bg)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          border: `1px solid ${isActive ? 'var(--sand)' : isDone ? 'var(--success-border)' : 'var(--border)'}`,
+                        }}>
+                          <Icon className="w-5.5 h-5.5" style={{ color: isActive ? 'var(--accent)' : isDone ? 'var(--success)' : 'var(--subtle)' }} />
                         </div>
-                        <p style={{ fontSize: 12, color: 'var(--subtle)', lineHeight: 1.5, fontFamily: 'Inter', marginBottom: 8 }}>{meta.desc}</p>
-
-                        {/* Runtime statistics per agent */}
-                        <div style={{ display: 'flex', gap: 12, fontSize: 10.5, fontFamily: 'monospace', color: 'var(--subtle)', background: 'var(--bg)', padding: '6px 10px', borderRadius: 5, border: '1px solid var(--border)' }}>
-                          <div>
-                            Status: <span style={{ fontWeight: 600, color: isDone ? 'var(--success)' : isActive ? 'var(--accent)' : 'var(--subtle)' }}>
-                              {runStatus === 'completed' ? 'Completed' : runStatus === 'running' ? 'Running' : 'Awaiting Queue'}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--subtle)', fontFamily: 'monospace', background: 'var(--bg)', padding: '2px 6px', borderRadius: 4, border: '1px solid var(--border)' }}>
+                              A0{idx + 1}
                             </span>
-                          </div>
-                          <div>·</div>
-                          <div>Duration: <span style={{ color: 'var(--text)' }}>{runStatus === 'completed' ? meta.duration : runStatus === 'running' ? 'Running...' : '—'}</span></div>
-                          <div>·</div>
-                          <div>Findings: <span style={{ color: 'var(--text)' }}>{runStatus === 'completed' ? meta.findings : '—'}</span></div>
-                        </div>
+                            <h3 style={{ fontFamily: 'Inter', fontSize: 15, fontWeight: 700, color: isActive ? 'var(--text)' : 'var(--text)' }}>
+                              {meta.label} Agent
+                            </h3>
+                            <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'Inter', fontWeight: 500 }}>· {meta.role}</span>
 
-                        {/* Teammate's live Summary result text */}
-                        {(isActive || isDone) && (
-                          <div style={{
-                            marginTop: 8,
-                            padding: '6px 10px',
-                            background: 'var(--bg)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 6,
-                            fontSize: 11,
-                            color: 'var(--muted)',
-                            fontFamily: 'monospace',
-                            lineHeight: 1.4
-                          }}>
-                            {isActive ? AGENT_SUMMARIES[agent].active : AGENT_SUMMARIES[agent].done}
+                            {isActive && <Loader2 className="w-4 h-4 animate-spin ml-auto" style={{ color: 'var(--accent)', flexShrink: 0 }} />}
+                            {isDone   && <CheckCircle className="w-4.5 h-4.5 ml-auto" style={{ color: 'var(--success)', flexShrink: 0 }} />}
+                            {isFailed && <AlertCircle className="w-4.5 h-4.5 ml-auto" style={{ color: 'var(--error)', flexShrink: 0 }} />}
                           </div>
-                        )}
+                          <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, fontFamily: 'Inter', marginBottom: 14 }}>{meta.desc}</p>
 
-                        {/* Last log snippet */}
-                        {(() => {
-                          const agentLogs = logs.filter(l => l.agent === agent);
-                          const lastLog = agentLogs[agentLogs.length - 1];
-                          if (!lastLog) return null;
-                          return (
-                            <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 6, background: 'var(--bg)', border: '1px solid var(--border)', fontSize: 11, color: 'var(--muted)', fontFamily: 'monospace', lineHeight: 1.5 }}>
-                              <span style={{ color: LOG_COLORS[lastLog.type] }}>
-                                [{lastLog.type.toUpperCase()}]
-                              </span>{' '}
-                              {lastLog.message}
+                          {/* Runtime statistics per agent */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, background: 'var(--bg)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)' }}>
+                            <div>
+                              <div style={{ fontSize: 9, color: 'var(--subtle)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em', marginBottom: 2 }}>Status</div>
+                              <span style={{ fontSize: 11.5, fontFamily: 'monospace', fontWeight: 700, color: isDone ? 'var(--success)' : isActive ? 'var(--warning)' : 'var(--muted)' }}>
+                                {runStatus === 'completed' ? 'COMPLETED' : runStatus === 'running' ? 'RUNNING' : 'QUEUED'}
+                              </span>
                             </div>
-                          );
-                        })()}
+                            <div>
+                              <div style={{ fontSize: 9, color: 'var(--subtle)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em', marginBottom: 2 }}>Duration</div>
+                              <span style={{ fontSize: 11.5, fontFamily: 'monospace', fontWeight: 700, color: 'var(--text)' }}>
+                                {runStatus === 'completed' ? meta.duration : runStatus === 'running' ? 'Running...' : '—'}
+                              </span>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 9, color: 'var(--subtle)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em', marginBottom: 2 }}>Findings</div>
+                              <span style={{ fontSize: 11.5, fontFamily: 'monospace', fontWeight: 700, color: isDone ? 'var(--success)' : 'var(--text)' }}>
+                                {runStatus === 'completed' ? meta.findings : '—'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Live Summary Text */}
+                          {(isActive || isDone) && (
+                            <div style={{
+                              marginTop: 10,
+                              padding: '8px 12px',
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--border)',
+                              borderRadius: 8,
+                              fontSize: 11.5,
+                              color: 'var(--text)',
+                              fontFamily: 'monospace',
+                              lineHeight: 1.45,
+                              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)'
+                            }}>
+                              <span style={{ color: 'var(--accent)', fontWeight: 700 }}>&gt;_ </span>
+                              {isActive ? AGENT_SUMMARIES[agent].active : AGENT_SUMMARIES[agent].done}
+                            </div>
+                          )}
+
+                          {/* Last log snippet */}
+                          {(() => {
+                            const agentLogs = logs.filter(l => l.agent === agent);
+                            const lastLog = agentLogs[agentLogs.length - 1];
+                            if (!lastLog) return null;
+                            return (
+                              <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', fontSize: 11.5, color: 'var(--muted)', fontFamily: 'monospace', lineHeight: 1.5 }}>
+                                <span style={{ color: LOG_COLORS[lastLog.type] }}>
+                                  [{lastLog.type.toUpperCase()}]
+                                </span>{' '}
+                                {lastLog.message}
+                              </div>
+                            );
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>

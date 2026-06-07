@@ -88,24 +88,28 @@ export default function Dashboard() {
 
             {/* Stats */}
             {loading ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 36 }}>
-                {[1,2,3,4].map(i => <SkeletonKpi key={i} />)}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14, marginBottom: 36 }}>
+                <div style={{ gridColumn: 'span 2' }}><SkeletonKpi /></div>
+                <SkeletonKpi />
+                <SkeletonKpi />
+                <SkeletonKpi />
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 36 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14, marginBottom: 36 }}>
+                <KpiCard
+                  icon={<TrendingUp className="w-4.5 h-4.5" />}
+                  label="Total Volume"
+                  value={fmt$(totalEscrowed)}
+                  sub="locked in contracts"
+                  accent="var(--accent)"
+                  featured={true}
+                />
                 <KpiCard
                   icon={<Wallet className="w-4 h-4" />}
                   label="Active Escrows"
                   value={String(active)}
                   sub={`${projects.length} total contracts`}
                   accent="var(--sand)"
-                />
-                <KpiCard
-                  icon={<TrendingUp className="w-4 h-4" />}
-                  label="Total Volume"
-                  value={fmt$(totalEscrowed)}
-                  sub="locked in contracts"
-                  accent="var(--accent)"
                 />
                 <KpiCard
                   icon={<ShieldCheck className="w-4 h-4" />}
@@ -150,40 +154,45 @@ export default function Dashboard() {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
                 {projects.map(p => (
-                  <Link key={p.id} href={`/project/${p.id}`} className="proj-card animate-slide-up" style={{ padding: '20px 22px', textDecoration: 'none', color: 'inherit', margin: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, marginBottom: 12 }}>
+                  <Link key={p.id} href={`/project/${p.id}`} className="proj-card animate-slide-up" style={{ padding: '24px 28px', textDecoration: 'none', color: 'inherit', margin: 0, border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7, flexWrap: 'wrap' as const }}>
-                          <span style={{ fontSize: 9.5, color: 'var(--subtle)', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', fontFamily: 'Inter' }}>
-                            ESCROW CONTRACT
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' as const }}>
+                          <span style={{ fontSize: 10, color: 'var(--subtle)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Inter' }}>
+                            Escrow Contract
                           </span>
                           <StatusBadge status={p.escrow_status} />
                         </div>
-                        <h3 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em', marginBottom: 5, color: 'var(--text)' }}>
+                        <h3 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 19, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 8, color: 'var(--text)' }}>
                           {p.title}
                         </h3>
-                        <p style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.55 }}>
-                          {p.description?.slice(0, 110)}{(p.description?.length ?? 0) > 110 ? '…' : ''}
+                        <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.6 }}>
+                          {p.description?.slice(0, 130)}{(p.description?.length ?? 0) > 130 ? '…' : ''}
                         </p>
                       </div>
-                      <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                        <ScoreRing score={p.escrow_status === 'Released' ? 100 : 0} size={42} strokeWidth={3.5} showLabel={false} />
+                      <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                        <ScoreRing score={p.escrow_status === 'Released' ? 100 : 0} size={54} strokeWidth={4.5} showLabel={false} />
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 18, alignItems: 'center', fontSize: 12, color: 'var(--subtle)', paddingTop: 12, borderTop: '1px solid var(--border)', marginTop: 8 }}>
-                      <span style={{ fontFamily: 'Inter' }}>
-                        Value: <strong style={{ color: 'var(--text)', fontFamily: '"Playfair Display", Georgia, serif' }}>{fmt$(p.escrow_amount)}</strong>
-                      </span>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid var(--border)', marginTop: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 12, color: 'var(--subtle)', fontWeight: 500, fontFamily: 'Inter' }}>Value:</span>
+                        <span style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 800, color: 'var(--accent)', background: 'var(--sand-soft)', padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
+                          {fmt$(p.escrow_amount)}
+                        </span>
+                      </div>
                       {p.github_url && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Github className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />
-                          <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--muted)' }}>{p.github_url.replace('https://github.com/', '').slice(0, 24)}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg)', padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
+                          <Github className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+                          <span style={{ fontFamily: 'monospace', fontSize: 11.5, color: 'var(--muted)', fontWeight: 500 }}>
+                            {p.github_url.replace('https://github.com/', '').slice(0, 24)}
+                          </span>
                         </span>
                       )}
-                      <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span className="btn-ghost" style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-alt)', border: '1px solid var(--border)' }}>
+                      <span style={{ marginLeft: 'auto' }}>
+                        <span className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-alt)', border: '1px solid var(--border)', fontWeight: 600, color: 'var(--text)' }}>
                           {p.escrow_status === 'Released' ? 'View Details' : 'Manage Audit'}
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </span>
                       </span>
                     </div>
