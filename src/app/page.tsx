@@ -57,8 +57,8 @@ function ScoreRing({ score, label, color }: { score: number; label: string; colo
     <div style={{ textAlign: 'center' }}>
       <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 7px' }}>
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#EFE5DB" strokeWidth={sw} />
-          <circle ref={ref} cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw}
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#EFE5DB" strokeWidth={sw} />
+          <circle ref={ref} cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={sw}
             strokeLinecap="round" strokeDasharray={`0 ${circ}`}
             style={{ transition: 'stroke-dasharray 1.5s cubic-bezier(0.16,1,0.3,1)' }} />
         </svg>
@@ -73,29 +73,29 @@ function ScoreRing({ score, label, color }: { score: number; label: string; colo
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 const AGENTS = [
-  { icon: Github,         label: 'GitHub Agent',    role: 'Repo Intelligence',  desc: 'Scans all files, commits, and PR diffs from the linked repository.',              bg: 'var(--bg)', color: 'var(--text)' },
-  { icon: Search,         label: 'Evidence Agent',  role: 'Proof Extractor',    desc: 'Semantically maps every code artifact to a project milestone.',                   bg: 'var(--bg-alt)', color: 'var(--accent)' },
-  { icon: Flag,           label: 'Milestone Agent', role: 'Completion Scorer',  desc: 'Grades each milestone 0–100% from the extracted evidence.',                       bg: 'var(--bg-alt)', color: 'var(--success)' },
-  { icon: ShieldCheck,    label: 'Verify Agent',    role: 'Quality Auditor',    desc: 'Cross-checks code quality against the original contract requirements.',             bg: 'var(--bg)', color: 'var(--accent)' },
-  { icon: ClipboardCheck, label: 'Report Agent',    role: 'Audit Compiler',     desc: 'Generates a structured markdown report for both client and developer.',            bg: 'var(--bg)', color: 'var(--error)' },
-  { icon: Banknote,       label: 'Payment Agent',   role: 'Payout Arbitrator',  desc: 'Computes the weighted escrow release and stages smart contract execution.',       bg: 'var(--bg-alt)', color: 'var(--warning)' },
+  { icon: Github, label: 'GitHub Agent', role: 'Repo Intelligence', desc: 'Scans all files, commits, and PR diffs from the linked repository.', bg: 'var(--bg)', color: 'var(--text)' },
+  { icon: Search, label: 'Evidence Agent', role: 'Proof Extractor', desc: 'Semantically maps every code artifact to a project milestone.', bg: 'var(--bg-alt)', color: 'var(--accent)' },
+  { icon: Flag, label: 'Milestone Agent', role: 'Completion Scorer', desc: 'Grades each milestone 0–100% from the extracted evidence.', bg: 'var(--bg-alt)', color: 'var(--success)' },
+  { icon: ShieldCheck, label: 'Verify Agent', role: 'Quality Auditor', desc: 'Cross-checks code quality against the original contract requirements.', bg: 'var(--bg)', color: 'var(--accent)' },
+  { icon: ClipboardCheck, label: 'Report Agent', role: 'Audit Compiler', desc: 'Generates a structured markdown report for both client and developer.', bg: 'var(--bg)', color: 'var(--error)' },
+  { icon: Banknote, label: 'Payment Agent', role: 'Payout Arbitrator', desc: 'Computes the weighted escrow release and stages smart contract execution.', bg: 'var(--bg-alt)', color: 'var(--warning)' },
 ];
 
-const PROBLEMS  = ['Manual subjective reviews', 'Disputes lasting weeks', 'Delayed, withheld payments', 'Human bias & favoritism', 'No objective evidence trail'];
+const PROBLEMS = ['Manual subjective reviews', 'Disputes lasting weeks', 'Delayed, withheld payments', 'Human bias & favoritism', 'No objective evidence trail'];
 const SOLUTIONS = ['AI-verified GitHub analysis', 'Automated resolution in minutes', 'Instant smart contract payout', 'Objective, immutable code evidence', '6-agent verifiable audit trail'];
 
 const STEPS = [
-  { n: '01', title: 'Client Creates Contract', sub: 'Defines project requirements and locks MON into an on-chain escrow smart contract.', icon: Lock,    color: 'var(--accent)', bg: 'var(--bg-alt)' },
-  { n: '02', title: 'Developer Builds',        sub: 'Writes code, opens a GitHub Pull Request, and submits the repository to krow.',     icon: Github,  color: 'var(--text)', bg: 'var(--bg)' },
-  { n: '03', title: '6-Agent Orchestra',       sub: 'Repository analysis, requirement matching, milestone scoring, audit report.',       icon: Bot,     color: 'var(--accent)', bg: 'var(--bg-alt)' },
-  { n: '04', title: 'Funds Released',          sub: 'AI verdict triggers the escrow smart contract. Developer is paid automatically.',   icon: Banknote,color: 'var(--success)', bg: 'var(--bg-alt)' },
+  { n: '01', title: 'Client Creates Contract', sub: 'Defines project requirements and locks MON into an on-chain escrow smart contract.', icon: Lock, color: 'var(--accent)', bg: 'var(--bg-alt)' },
+  { n: '02', title: 'Developer Builds', sub: 'Writes code, opens a GitHub Pull Request, and submits the repository to krow.', icon: Github, color: 'var(--text)', bg: 'var(--bg)' },
+  { n: '03', title: '6-Agent Orchestra', sub: 'Repository analysis, requirement matching, milestone scoring, audit report.', icon: Bot, color: 'var(--accent)', bg: 'var(--bg-alt)' },
+  { n: '04', title: 'Funds Released', sub: 'AI verdict triggers the escrow smart contract. Developer is paid automatically.', icon: Banknote, color: 'var(--success)', bg: 'var(--bg-alt)' },
 ];
 
 const MONAD_STATS = [
-  { val: '10,000', unit: ' TPS',  desc: 'Transactions per second' },
-  { val: '1s',     unit: '',      desc: 'Block finality time'      },
-  { val: '< $0.01',unit: '',      desc: 'Per transaction cost'     },
-  { val: '100%',   unit: '',      desc: 'EVM compatible'           },
+  { val: '10,000', unit: ' TPS', desc: 'Transactions per second' },
+  { val: '1s', unit: '', desc: 'Block finality time' },
+  { val: '< $0.01', unit: '', desc: 'Per transaction cost' },
+  { val: '100%', unit: '', desc: 'EVM compatible' },
 ];
 
 const TRUST_BAR = ['Monad', 'GitHub', 'OpenAI', 'Next.js', 'Viem', 'Tailwind CSS'];
@@ -110,13 +110,13 @@ export default function LandingPage() {
 
   // ── inline hover helpers ──────────────────────────────────────────────────
   const navLink = (label: string) => (
-  <a key={label} href={`#${label.toLowerCase().replace(/ /g, '-')}`}
-    style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: 'var(--muted)', textDecoration: 'none', transition: 'color 0.15s' }}
-    onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-    onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
-    {label}
-  </a>
-);
+    <a key={label} href={`#${label.toLowerCase().replace(/ /g, '-')}`}
+      style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: 'var(--muted)', textDecoration: 'none', transition: 'color 0.15s' }}
+      onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+      onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+      {label}
+    </a>
+  );
 
   return (
     <div style={{ background: 'var(--bg)', color: 'var(--text)', fontFamily: 'Inter, system-ui, sans-serif', WebkitFontSmoothing: 'antialiased', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
@@ -135,7 +135,7 @@ export default function LandingPage() {
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--text)', display: 'flex', alignItems: 'center', justifycontent: 'center', justifyContent: 'center' }}>
             <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-              <path d="M4 2.5V15.5M4 9L13.5 2.5M4 9L13.5 15.5" stroke="var(--bg-card)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M4 2.5V15.5M4 9L13.5 2.5M4 9L13.5 15.5" stroke="var(--bg-card)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <span style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 700, fontSize: 19, letterSpacing: '-0.03em', color: 'var(--text)' }}>krow</span>
@@ -202,8 +202,8 @@ export default function LandingPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 13, color: 'var(--subtle)', fontFamily: 'Inter, sans-serif' }}>
               {[
                 { icon: <ShieldCheck className="w-3.5 h-3.5" style={{ color: 'var(--success)' }} />, text: 'Smart contract escrow' },
-                { icon: <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />, text: 'AI-verified milestones'   },
-                { icon: <Zap className="w-3.5 h-3.5" style={{ color: 'var(--warning)' }} />, text: 'Instant settlement'       },
+                { icon: <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />, text: 'AI-verified milestones' },
+                { icon: <Zap className="w-3.5 h-3.5" style={{ color: 'var(--warning)' }} />, text: 'Instant settlement' },
               ].map((f, i) => (
                 <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>{f.icon} {f.text}</span>
               ))}
@@ -218,11 +218,11 @@ export default function LandingPage() {
               </div>
 
               {[
-                { icon: <User className="w-4 h-4" />,          label: 'Client',                sub: 'Creates contract',         badge: 'Step 1',  bc: 'var(--sand-soft)', bt: 'var(--accent)', done: true  },
-                { icon: <Lock className="w-4 h-4" />,          label: 'Escrow Locked',          sub: '2,000 MON on Monad',       badge: 'Funded',  bc: 'var(--sand-soft)', bt: 'var(--accent)', done: true  },
-                { icon: <Github className="w-4 h-4" />,        label: 'Pull Request Submitted', sub: 'github.com/user/repo #42', badge: 'PR #42',  bc: 'var(--bg)', bt: 'var(--muted)', done: true  },
-                { icon: <Bot className="w-4 h-4" />,           label: 'AI Verification',        sub: '6 agents analyzing…',      badge: 'Live',    bc: 'var(--warning-soft)', bt: 'var(--warning)', done: false, active: true },
-                { icon: <Banknote className="w-4 h-4" />,      label: 'Payment Released',        sub: '1,840 MON → developer',   badge: 'Pending', bc: 'var(--success-soft)', bt: 'var(--success)', done: false },
+                { icon: <User className="w-4 h-4" />, label: 'Client', sub: 'Creates contract', badge: 'Step 1', bc: 'var(--sand-soft)', bt: 'var(--accent)', done: true },
+                { icon: <Lock className="w-4 h-4" />, label: 'Escrow Locked', sub: '2,000 MON on Monad', badge: 'Funded', bc: 'var(--sand-soft)', bt: 'var(--accent)', done: true },
+                { icon: <Github className="w-4 h-4" />, label: 'Pull Request Submitted', sub: 'github.com/user/repo #42', badge: 'PR #42', bc: 'var(--bg)', bt: 'var(--muted)', done: true },
+                { icon: <Bot className="w-4 h-4" />, label: 'AI Verification', sub: '6 agents analyzing…', badge: 'Live', bc: 'var(--warning-soft)', bt: 'var(--warning)', done: false, active: true },
+                { icon: <Banknote className="w-4 h-4" />, label: 'Payment Released', sub: '1,840 MON → developer', badge: 'Pending', bc: 'var(--success-soft)', bt: 'var(--success)', done: false },
               ].map((step, i) => (
                 <div key={i}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0' }}>
@@ -457,8 +457,8 @@ export default function LandingPage() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 18 }}>
-                  <ScoreRing score={92} label="Completion"   color="var(--accent)" />
-                  <ScoreRing score={95} label="Req. Match"   color="var(--success)" />
+                  <ScoreRing score={92} label="Completion" color="var(--accent)" />
+                  <ScoreRing score={95} label="Req. Match" color="var(--success)" />
                   <ScoreRing score={94} label="Code Quality" color="var(--warning)" />
                 </div>
 
@@ -547,7 +547,7 @@ export default function LandingPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                <path d="M4 2.5V15.5M4 9L13.5 2.5M4 9L13.5 15.5" stroke="var(--bg-card)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M4 2.5V15.5M4 9L13.5 2.5M4 9L13.5 15.5" stroke="var(--bg-card)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <div>
@@ -558,9 +558,9 @@ export default function LandingPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             {[
-              { l: 'GitHub',     h: 'https://github.com' },
-              { l: 'Twitter',    h: 'https://twitter.com' },
-              { l: 'Docs',       h: '#' },
+              { l: 'GitHub', h: 'https://github.com' },
+              { l: 'Twitter', h: 'https://twitter.com' },
+              { l: 'Docs', h: '#' },
               { l: 'Launch App', h: '/dashboard' },
             ].map(link => (
               <a key={link.l} href={link.h} style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--muted)', textDecoration: 'none', transition: 'color 0.15s' }}

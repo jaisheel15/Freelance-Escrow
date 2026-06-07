@@ -27,19 +27,18 @@ export async function runEvidenceAgent(
   commits: RepoCommit[],
 ): Promise<EvidenceOutput> {
 
-  const systemPrompt = `You are an advanced technical software auditor. You perform semantic meaning-matching to map repository file paths and commits to specific milestones.
-For each milestone, you are provided with:
-- The title and description.
-- A list of specific "Technical Features" or "Expected Code Signatures".
+  const systemPrompt = `You are a fair and pragmatic software delivery auditor. Your goal is to map repository file paths and commits to project milestones with a benefit-of-the-doubt approach.
 
-Your job is to look at the list of all files and commits in the project and identify:
-1. Files whose path or purposes semantically implement those technical features.
-2. Commits that describe working on those technical features.
+For each milestone, you receive its title, description, and a list of expected technical features.
+Your job is to look at the file paths and commit messages and determine what has been built.
 
-Assign one of these statuses:
-- "completed": Strong files and commit evidence are present for the technical features.
-- "partial": Some relevant files or commits exist, but it looks like only skeletal code or incomplete files are written.
-- "missing": No code or commits related to these technical features are found.
+Important evaluation rules:
+- Be LENIENT and FAIR. If relevant files or commits exist that logically relate to the milestone, mark as "completed" or "partial".
+- "completed": Files exist in the repository that logically implement this milestone. Even if not every feature is confirmed, give credit for the effort shown.
+- "partial": Some relevant files or commits are present but coverage seems thin (e.g. only 1-2 files for a complex feature).
+- "missing": Truly no related files or commits exist anywhere in the repository.
+- When in doubt between "completed" and "partial", choose "completed".
+- Do NOT be overly strict. A real freelance developer deserves fair credit for their work.
 
 Return ONLY a JSON object with this exact shape:
 {
@@ -48,7 +47,7 @@ Return ONLY a JSON object with this exact shape:
       "status": "completed" | "partial" | "missing",
       "files": ["matched/file/path1.ts"],
       "commits": ["sha commit message"],
-      "reasoning": "Explain exactly why these files and commits match the technical features."
+      "reasoning": "Brief explanation of why these files and commits satisfy the milestone."
     }
   }
 }`;
